@@ -1,0 +1,6 @@
+hunyuan3d:
+  shape_steps: 50
+  guidance_scale: 5.5
+  texture_steps: 20
+  texture_resolution: 1024
+  export_format: glb

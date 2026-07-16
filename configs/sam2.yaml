@@ -1,0 +1,4 @@
+sam2:
+  multimask_output: true
+  choose_best_iou: true
+  device: cuda

@@ -1,0 +1,4 @@
+dbscan:
+  eps: 0.05
+  min_points: 50
+  remove_outliers: true

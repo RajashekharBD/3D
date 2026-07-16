@@ -1,0 +1,6 @@
+florence2:
+  device: cuda
+  precision: float16
+  max_tokens: 64
+  temperature: 0.0
+  beam_search: true

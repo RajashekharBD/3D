@@ -1,0 +1,3 @@
+rembg:
+  use_gpu: true
+  output_format: RGBA

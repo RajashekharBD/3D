@@ -1,0 +1,6 @@
+pointcloud:
+  target_points: 100000
+  estimate_normals: true
+  radius: 0.05
+  max_neighbors: 30
+  orient_normals: true

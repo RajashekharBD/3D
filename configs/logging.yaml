@@ -1,0 +1,5 @@
+logging:
+  level: INFO
+  file: logs/pipeline.log
+  console: true
+  save_errors: true

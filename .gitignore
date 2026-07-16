@@ -1,0 +1,49 @@
+# Python virtual environment
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Node.js dependencies
+node_modules/
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+
+# Local configuration
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Project data & outputs
+data/input/*
+!data/input/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+data/temp/*
+!data/temp/.gitkeep
+data/cache/*
+!data/cache/.gitkeep
+outputs/images/*
+!outputs/images/.gitkeep
+outputs/meshes/*
+!outputs/meshes/.gitkeep
+outputs/pointcloud/*
+!outputs/pointcloud/.gitkeep
+outputs/metadata/*
+!outputs/metadata/.gitkeep
+
+# Logs
+logs/*.log
+!logs/.gitkeep
+
+# IDEs & System files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,7 @@
+grounding_dino:
+  thresholds:
+    pass1: 0.20
+    pass2: 0.20
+    pass3: 0.15
+    pass4: 0.10
+  max_retries: 4

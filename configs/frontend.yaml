@@ -1,0 +1,4 @@
+frontend:
+  polling_interval: 2000
+  max_preview_size: 1200
+  enable_dark_mode: false

@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: single-image-3d-backend
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - shared-data:/app/data
+      - shared-outputs:/app/outputs
+      - shared-logs:/app/logs
+    environment:
+      - APP_ENV=production
+      - HOST=0.0.0.0
+      - PORT=8000
+      - CUDA_DEVICE=0
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    restart: always
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: ../docker/Dockerfile.frontend
+    container_name: single-image-3d-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - NEXT_PUBLIC_API_URL=http://backend:8000/api/v1
+    restart: always
+    depends_on:
+      - backend
+
+volumes:
+  shared-data:
+  shared-outputs:
+  shared-logs:
