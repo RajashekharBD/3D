@@ -7,7 +7,7 @@ PyYAML>=6.0.1
 pillow>=10.2.0
 numpy>=1.26.0
 opencv-python>=4.9.0.80
-transformers>=4.38.0
+transformers>=4.38.0,<5.0.0
 trimesh>=4.1.0
 open3d>=0.18.0
 rembg>=2.0.55
@@ -20,3 +20,6 @@ pytest-cov>=4.1.0
 ruff>=0.3.0
 black>=24.2.0
 mypy>=1.8.0
+einops
+timm
+

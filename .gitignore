@@ -37,6 +37,7 @@ outputs/pointcloud/*
 !outputs/pointcloud/.gitkeep
 outputs/metadata/*
 !outputs/metadata/.gitkeep
+outputs/*/
 
 # Logs
 logs/*.log

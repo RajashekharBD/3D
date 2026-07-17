@@ -1,66 +1,135 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
+import { useState, useEffect } from 'react';
+import ThreeViewer from '../../../components/ThreeViewer';
+import DownloadPanel from '../../../components/Download/DownloadPanel';
+import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 
 export default function ResultsPage() {
-  const { jobId } = useParams();
+  const router = useRouter();
+  const { jobId } = useParams() as { jobId: string };
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [resultData, setResultData] = useState<any>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+  const staticUrl = apiUrl.replace('/api/v1', '');
+  
+  const resultUrl = `${staticUrl}/outputs/${jobId}/result.json`;
+  const glbUrl = `${staticUrl}/outputs/meshes/${jobId}_model.glb`;
+  const plyUrl = `${staticUrl}/outputs/pointcloud/${jobId}_segmented_pointcloud.ply`;
+
+  useEffect(() => {
+    if (!jobId) return;
+    
+    const fetchResults = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch(resultUrl);
+        if (!response.ok) {
+          throw new Error('Failed to load reconstruction result metadata.');
+        }
+        const data = await response.json();
+        setResultData(data);
+        setError(null);
+      } catch (err) {
+        console.error('Error fetching result.json:', err);
+        setError('Reconstruction output is not yet ready or does not exist.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchResults();
+  }, [jobId, resultUrl]);
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] flex-grow text-slate-400">
+        <Loader2 className="animate-spin h-8 w-8 text-blue-500 mb-4" />
+        <p className="text-sm font-semibold">Loading reconstruction results...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] flex-grow text-center max-w-md mx-auto px-6">
+        <AlertTriangle className="w-12 h-12 text-red-500 mb-4" />
+        <h2 className="text-xl font-bold text-white mb-2">Results Unavailable</h2>
+        <p className="text-sm text-slate-400 mb-6">{error}</p>
+        <button 
+          onClick={() => router.push('/upload')} 
+          className="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors cursor-pointer"
+        >
+          Go to Upload
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow">
+      {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold">Reconstruction Results</h1>
-          <p className="text-sm text-slate-400">Job ID: {jobId}</p>
+          <h1 className="text-3xl font-bold tracking-tight text-white">Reconstruction Results</h1>
+          <p className="text-sm text-slate-400 mt-1">Job ID: {jobId}</p>
         </div>
         <div className="flex space-x-3">
-          <button className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-lg text-sm transition-colors">
-            Back to Upload
-          </button>
-          <button className="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-semibold transition-colors">
-            Download All (.zip)
+          <button 
+            onClick={() => router.push('/upload')}
+            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg text-sm transition-colors cursor-pointer"
+          >
+            <ArrowLeft size={16} />
+            <span>Back to Upload</span>
           </button>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* 3D Viewer Panel */}
-        <div className="lg:col-span-2 aspect-video bg-slate-900 border border-slate-800 rounded-2xl flex flex-col items-center justify-center p-6 text-slate-400 relative">
-          <div className="absolute top-4 left-4 bg-slate-950/80 border border-slate-850 px-3 py-1 rounded-full text-xs font-semibold text-slate-300">
-            3D Viewer
-          </div>
-          <svg className="w-16 h-16 text-slate-700 mb-4 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M14 10l-2 1m0 0l-2-1m2 1v2.5M20 7l-2 1m2-1l-2-1m2 1v2.5M14 4l-2-1-2 1M4 7l2-1M4 7l2 1M4 7v2.5M12 21l-2-1m2 1l2-1m-2 1v-2.5M6 18l-2-1v-2.5M18 18l2-1v-2.5" />
-          </svg>
-          <p className="text-sm font-medium">3D Viewer Sandbox (Three.js)</p>
-          <p className="text-xs text-slate-500 mt-1">GLB models rendering will be loaded here in Phase 19</p>
-        </div>
-
-        {/* Outputs and Downloads Panel */}
-        <div className="flex flex-col space-y-6">
-          <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-2xl">
-            <h2 className="text-lg font-bold mb-4">Pipeline Deliverables</h2>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <span className="text-sm font-medium text-slate-300">Textured Mesh (.GLB)</span>
-                <button className="text-xs font-bold text-blue-400 hover:text-blue-300">Download</button>
+        <div className="lg:col-span-2 flex flex-col space-y-4">
+          <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
+          
+          {/* Metadata Metrics Panel */}
+          {resultData && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-900/50 border border-slate-900 rounded-xl">
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Vertices</span>
+                <span className="text-xl font-extrabold text-white mt-1">
+                  {resultData.mesh_metadata?.vertex_count?.toLocaleString() || 'N/A'}
+                </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <span className="text-sm font-medium text-slate-300">Raw Point Cloud (.PLY)</span>
-                <button className="text-xs font-bold text-blue-400 hover:text-blue-300">Download</button>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Faces</span>
+                <span className="text-xl font-extrabold text-white mt-1">
+                  {resultData.mesh_metadata?.face_count?.toLocaleString() || 'N/A'}
+                </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <span className="text-sm font-medium text-slate-300">Clustered Point Cloud (.PLY)</span>
-                <button className="text-xs font-bold text-blue-400 hover:text-blue-300">Download</button>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Points Sampled</span>
+                <span className="text-xl font-extrabold text-white mt-1">
+                  {resultData.pointcloud_metadata?.point_count?.toLocaleString() || '100,000'}
+                </span>
               </div>
-              <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <span className="text-sm font-medium text-slate-300">Transparent Image (.PNG)</span>
-                <button className="text-xs font-bold text-blue-400 hover:text-blue-300">Download</button>
-              </div>
-              <div className="flex items-center justify-between p-3 bg-slate-900 rounded-lg border border-slate-800">
-                <span className="text-sm font-medium text-slate-300">Job Metadata (.JSON)</span>
-                <button className="text-xs font-bold text-blue-400 hover:text-blue-300">Download</button>
+              <div className="flex flex-col">
+                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Semantic Clusters</span>
+                <span className="text-xl font-extrabold text-white mt-1">
+                  {resultData.dbscan_metadata?.total_clusters || '1'}
+                </span>
               </div>
             </div>
+          )}
+        </div>
+
+        {/* Download Panel */}
+        <div className="flex flex-col space-y-6">
+          <div className="p-6 bg-slate-900/30 border border-slate-900 rounded-2xl">
+            <h2 className="text-lg font-bold mb-5 text-white">Pipeline Deliverables</h2>
+            <DownloadPanel jobId={jobId} />
           </div>
         </div>
       </div>
