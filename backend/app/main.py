@@ -1,12 +1,17 @@
+# Trigger reload to clean VRAM paging
 import uvicorn
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import os
 from backend.app.core.settings import settings
 from backend.app.core.exceptions import BaseAppException
 from backend.app.middleware.exception_middleware import ExceptionHandlingMiddleware
 from backend.app.api.health import router as health_router
 from backend.app.api.upload import router as upload_router
+from backend.app.api.pipeline import router as pipeline_router
+from backend.app.api.download import router as download_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -39,9 +44,17 @@ async def app_exception_handler(request: Request, exc: BaseAppException):
         content["stage"] = exc.stage
     return JSONResponse(status_code=exc.status_code, content=content)
 
+# Ensure outputs directory exists
+os.makedirs(settings.OUTPUT_DIR, exist_ok=True)
+
+# Mount outputs static files directory
+app.mount("/outputs", StaticFiles(directory=settings.OUTPUT_DIR), name="outputs")
+
 # Routes
 app.include_router(health_router, prefix="/api/v1")
 app.include_router(upload_router, prefix="/api/v1")
+app.include_router(pipeline_router, prefix="/api/v1")
+app.include_router(download_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host=settings.HOST, port=settings.PORT, reload=True)
