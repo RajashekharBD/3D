@@ -90,6 +90,15 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
     loader.load(
       plyUrl,
       (geometry) => {
+        // Convert any Float64Array attributes to Float32Array to prevent WebGL errors
+        Object.keys(geometry.attributes).forEach((key) => {
+          const attr = geometry.attributes[key];
+          if (attr && attr.array instanceof Float64Array) {
+            const f32Array = new Float32Array(attr.array);
+            geometry.setAttribute(key, new THREE.BufferAttribute(f32Array, attr.itemSize));
+          }
+        });
+
         setPlyGeometry(geometry);
         if (viewMode === 'pointcloud') {
           const points = new THREE.Points(
