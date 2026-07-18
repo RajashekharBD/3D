@@ -8,7 +8,7 @@ from backend.app.pipeline.run import execute_full_reconstruction_pipeline
 from backend.app.core.settings import settings
 
 class UploadController:
-    def handle_upload(self, file: UploadFile, background_tasks: BackgroundTasks) -> UploadResponse:
+    def handle_upload(self, file: UploadFile, background_tasks: BackgroundTasks, current_user: dict) -> UploadResponse:
         """Handles upload saving, executes Phase 6 validation, and returns job ID."""
         job_id = storage_service.generate_job_id()
         saved_path = storage_service.save_upload(file, job_id)
@@ -22,8 +22,8 @@ class UploadController:
                 os.remove(saved_path)
             raise
             
-        # Initialise job structure and save original.png
-        artifacts_manager.init_job(job_id, saved_path)
+        # Initialise job structure and save original.png mapped to user_id
+        artifacts_manager.init_job(job_id, saved_path, user_id=current_user.get("id"), email=current_user.get("email"))
         # Mark validation phase as complete
         artifacts_manager.add_completed_phase(job_id, "validation")
         

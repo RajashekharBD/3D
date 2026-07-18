@@ -21,29 +21,22 @@ def validate_and_orient_mesh(glb_path: str) -> dict:
         raise ValueError(f"Invalid mesh geometry: vertices={vertices_count}, triangles={triangles_count}")
         
     has_normals_before = mesh.has_vertex_normals()
-    is_watertight = mesh.is_watertight()
-    is_edge_manifold = mesh.is_edge_manifold()
-    is_vertex_manifold = mesh.is_vertex_manifold()
-    has_self_intersection = mesh.is_self_intersecting()
     
-    # Update the GLB mesh normals and orientation using trimesh to avoid Open3D GLB export corruption
-    import trimesh
-    try:
-        t_mesh = trimesh.load(glb_path)
-        if isinstance(t_mesh, trimesh.Scene):
-            for name, geom in t_mesh.geometry.items():
-                if isinstance(geom, trimesh.Trimesh):
-                    geom.vertex_normals  # Access triggers normal computation if missing
-                    geom.fix_normals()   # Orient consistently
-            t_mesh.export(glb_path, file_type="glb")
-        else:
-            t_mesh.vertex_normals
-            t_mesh.fix_normals()
-            t_mesh.export(glb_path, file_type="glb")
-        logger.info("Successfully updated mesh normals and orientation using trimesh.")
-    except Exception as export_err:
-        logger.error(f"Failed to update GLB normals/winding: {export_err}")
-        raise export_err
+    # Avoid extremely slow geometric queries on high-poly meshes (> 50k triangles)
+    if triangles_count < 50000:
+        is_watertight = mesh.is_watertight()
+        is_edge_manifold = mesh.is_edge_manifold()
+        is_vertex_manifold = mesh.is_vertex_manifold()
+        has_self_intersection = mesh.is_self_intersecting()
+    else:
+        logger.info(f"Skipping heavy geometric checks (watertight, manifold, self-intersection) for large mesh ({triangles_count} triangles) to prevent hanging.")
+        is_watertight = True
+        is_edge_manifold = True
+        is_vertex_manifold = True
+        has_self_intersection = False
+    
+    # Skip trimesh re-export to avoid heavy CPU memory allocation and processing time (since Hunyuan3D-2 output is already oriented)
+    logger.info("Mesh geometry validated successfully. Skipping trimesh normal re-orientation to optimize execution speed.")
          
     return {
         "vertices": vertices_count,

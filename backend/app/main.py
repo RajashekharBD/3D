@@ -12,6 +12,8 @@ from backend.app.api.health import router as health_router
 from backend.app.api.upload import router as upload_router
 from backend.app.api.pipeline import router as pipeline_router
 from backend.app.api.download import router as download_router
+from backend.app.api.history import router as history_router
+from backend.app.api.profile import router as profile_router
 
 app = FastAPI(
     title=settings.APP_NAME,
@@ -55,6 +57,8 @@ app.include_router(health_router, prefix="/api/v1")
 app.include_router(upload_router, prefix="/api/v1")
 app.include_router(pipeline_router, prefix="/api/v1")
 app.include_router(download_router, prefix="/api/v1")
+app.include_router(history_router, prefix="/api/v1")
+app.include_router(profile_router, prefix="/api/v1")
 
 if __name__ == "__main__":
     uvicorn.run("backend.app.main:app", host=settings.HOST, port=settings.PORT, reload=True)

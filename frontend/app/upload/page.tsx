@@ -2,9 +2,12 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/context/AuthContext';
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 
 export default function UploadPage() {
   const router = useRouter();
+  const { session } = useAuth();
   const [dragActive, setDragActive] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
@@ -82,8 +85,13 @@ export default function UploadPage() {
 
     try {
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
       const response = await fetch(`${apiUrl}/upload`, {
         method: 'POST',
+        headers,
         body: formData,
       });
 
@@ -106,7 +114,8 @@ export default function UploadPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center py-16 px-6 max-w-xl mx-auto flex-grow w-full">
+    <ProtectedRoute>
+      <div className="flex flex-col items-center justify-center py-16 px-6 max-w-xl mx-auto flex-grow w-full">
       <h1 className="text-3xl font-bold mb-2 tracking-tight text-white bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
         Upload Image
       </h1>
@@ -193,5 +202,6 @@ export default function UploadPage() {
         </div>
       )}
     </div>
+    </ProtectedRoute>
   );
 }

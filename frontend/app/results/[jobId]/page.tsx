@@ -6,23 +6,27 @@ import ThreeViewer from '../../../components/ThreeViewer';
 import DownloadPanel from '../../../components/Download/DownloadPanel';
 import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
 
+import ProtectedRoute from '@/components/Auth/ProtectedRoute';
+import { useAuth } from '@/context/AuthContext';
+
 export default function ResultsPage() {
   const router = useRouter();
   const { jobId } = useParams() as { jobId: string };
+  const { session } = useAuth();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [resultData, setResultData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
-  const staticUrl = apiUrl.replace('/api/v1', '');
+  const token = session?.access_token || '';
   
-  const resultUrl = `${staticUrl}/outputs/${jobId}/result.json`;
-  const glbUrl = `${staticUrl}/outputs/meshes/${jobId}_model.glb`;
-  const plyUrl = `${staticUrl}/outputs/pointcloud/${jobId}_segmented_pointcloud.ply`;
+  const resultUrl = `${apiUrl}/download/${jobId}/result?token=${token}`;
+  const glbUrl = `${apiUrl}/download/${jobId}/model?token=${token}`;
+  const plyUrl = `${apiUrl}/download/${jobId}/segmented_pointcloud?token=${token}`;
 
   useEffect(() => {
-    if (!jobId) return;
+    if (!jobId || !session) return;
     
     const fetchResults = async () => {
       try {
@@ -43,7 +47,7 @@ export default function ResultsPage() {
     };
 
     fetchResults();
-  }, [jobId, resultUrl]);
+  }, [jobId, resultUrl, session]);
 
   if (loading) {
     return (
@@ -71,68 +75,70 @@ export default function ResultsPage() {
   }
 
   return (
-    <div className="flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-8 gap-4">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight text-white">Reconstruction Results</h1>
-          <p className="text-sm text-slate-400 mt-1">Job ID: {jobId}</p>
+    <ProtectedRoute>
+      <div className="flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-8 gap-4">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Reconstruction Results</h1>
+            <p className="text-sm text-slate-400 mt-1">Job ID: {jobId}</p>
+          </div>
+          <div className="flex space-x-3">
+            <button 
+              onClick={() => router.push('/upload')}
+              className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg text-sm transition-colors cursor-pointer"
+            >
+              <ArrowLeft size={16} />
+              <span>Back to Upload</span>
+            </button>
+          </div>
         </div>
-        <div className="flex space-x-3">
-          <button 
-            onClick={() => router.push('/upload')}
-            className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg text-sm transition-colors cursor-pointer"
-          >
-            <ArrowLeft size={16} />
-            <span>Back to Upload</span>
-          </button>
-        </div>
-      </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* 3D Viewer Panel */}
-        <div className="lg:col-span-2 flex flex-col space-y-4">
-          <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
-          
-          {/* Metadata Metrics Panel */}
-          {resultData && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-900/50 border border-slate-900 rounded-xl">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Vertices</span>
-                <span className="text-xl font-extrabold text-white mt-1">
-                  {resultData.mesh_metadata?.vertex_count?.toLocaleString() || 'N/A'}
-                </span>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* 3D Viewer Panel */}
+          <div className="lg:col-span-2 flex flex-col space-y-4">
+            <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
+            
+            {/* Metadata Metrics Panel */}
+            {resultData && (
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-900/50 border border-slate-900 rounded-xl">
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Vertices</span>
+                  <span className="text-xl font-extrabold text-white mt-1">
+                    {resultData.mesh_metadata?.vertex_count?.toLocaleString() || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Faces</span>
+                  <span className="text-xl font-extrabold text-white mt-1">
+                    {resultData.mesh_metadata?.face_count?.toLocaleString() || 'N/A'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Points Sampled</span>
+                  <span className="text-xl font-extrabold text-white mt-1">
+                    {resultData.pointcloud_metadata?.point_count?.toLocaleString() || '100,000'}
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Semantic Clusters</span>
+                  <span className="text-xl font-extrabold text-white mt-1">
+                    {resultData.dbscan_metadata?.total_clusters || '1'}
+                  </span>
+                </div>
               </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Faces</span>
-                <span className="text-xl font-extrabold text-white mt-1">
-                  {resultData.mesh_metadata?.face_count?.toLocaleString() || 'N/A'}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Points Sampled</span>
-                <span className="text-xl font-extrabold text-white mt-1">
-                  {resultData.pointcloud_metadata?.point_count?.toLocaleString() || '100,000'}
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Semantic Clusters</span>
-                <span className="text-xl font-extrabold text-white mt-1">
-                  {resultData.dbscan_metadata?.total_clusters || '1'}
-                </span>
-              </div>
+            )}
+          </div>
+
+          {/* Download Panel */}
+          <div className="flex flex-col space-y-6">
+            <div className="p-6 bg-slate-900/30 border border-slate-900 rounded-2xl">
+              <h2 className="text-lg font-bold mb-5 text-white">Pipeline Deliverables</h2>
+              <DownloadPanel jobId={jobId} />
             </div>
-          )}
-        </div>
-
-        {/* Download Panel */}
-        <div className="flex flex-col space-y-6">
-          <div className="p-6 bg-slate-900/30 border border-slate-900 rounded-2xl">
-            <h2 className="text-lg font-bold mb-5 text-white">Pipeline Deliverables</h2>
-            <DownloadPanel jobId={jobId} />
           </div>
         </div>
       </div>
-    </div>
+    </ProtectedRoute>
   );
 }

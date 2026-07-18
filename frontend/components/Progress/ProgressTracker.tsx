@@ -4,6 +4,8 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Loader2, CheckCircle2, XCircle, Zap } from 'lucide-react';
 
+import { useAuth } from '@/context/AuthContext';
+
 interface PipelineStatus {
   job_id: string;
   status: string;
@@ -41,6 +43,7 @@ const PHASE_ORDER = Object.keys(PHASE_LABELS);
 
 export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: ProgressTrackerProps) {
   const router = useRouter();
+  const { session } = useAuth();
   const [status, setStatus] = useState<PipelineStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -50,7 +53,11 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
 
   const fetchStatus = useCallback(async () => {
     try {
-      const response = await fetch(`${apiUrl}/pipeline/status/${jobId}`);
+      const headers: Record<string, string> = {};
+      if (session?.access_token) {
+        headers['Authorization'] = `Bearer ${session.access_token}`;
+      }
+      const response = await fetch(`${apiUrl}/pipeline/status/${jobId}`, { headers });
       if (!response.ok) {
         throw new Error('Failed to fetch pipeline status.');
       }

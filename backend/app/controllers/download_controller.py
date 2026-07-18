@@ -4,6 +4,8 @@ from fastapi import HTTPException, status
 from backend.app.core.settings import settings
 from backend.app.utils.logger import logger
 
+from backend.app.core.database import db
+
 # Map of artifact keys to their file paths relative to the outputs directory.
 # Paths can contain {job_id} as a placeholder.
 ARTIFACT_MAP = {
@@ -36,8 +38,23 @@ MEDIA_TYPES = {
 class DownloadController:
     """Controller that resolves artifact paths and returns FileResponse objects."""
 
-    def get_artifact(self, job_id: str, artifact_key: str) -> FileResponse:
-        """Returns a downloadable FileResponse for the requested artifact."""
+    def _verify_ownership(self, job_id: str, current_user: dict):
+        """Verifies if the current authenticated user owns the requested job."""
+        if db.is_enabled:
+            try:
+                res = db.get_client().table("jobs").select("user_id").eq("job_id", job_id).execute()
+                if not res.data:
+                    raise HTTPException(status_code=404, detail="Job not found.")
+                if res.data[0]["user_id"] != current_user["id"]:
+                    raise HTTPException(status_code=403, detail="Forbidden: You do not own this job.")
+            except Exception as e:
+                if isinstance(e, HTTPException):
+                    raise
+                raise HTTPException(status_code=500, detail=f"Database ownership verification failed: {e}")
+
+    def get_artifact(self, job_id: str, artifact_key: str, current_user: dict) -> FileResponse:
+        """Returns a downloadable FileResponse for the requested artifact after ownership check."""
+        self._verify_ownership(job_id, current_user)
         if artifact_key not in ARTIFACT_MAP:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
@@ -70,8 +87,9 @@ class DownloadController:
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
 
-    def list_available_artifacts(self, job_id: str) -> dict:
-        """Returns a dict of artifact_key -> bool availability."""
+    def list_available_artifacts(self, job_id: str, current_user: dict) -> dict:
+        """Returns a dict of artifact_key -> bool availability after ownership check."""
+        self._verify_ownership(job_id, current_user)
         result = {}
         for key, rel_path in ARTIFACT_MAP.items():
             absolute_path = os.path.join(

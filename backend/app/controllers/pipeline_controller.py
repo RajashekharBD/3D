@@ -1,7 +1,9 @@
 import os
+from fastapi import HTTPException
 from backend.app.core.settings import settings
 from backend.app.utils.artifacts_manager import artifacts_manager
 from backend.app.schemas.pipeline_schema import PipelineStatusResponse
+from backend.app.core.database import db
 
 # Ordered list of pipeline phases with human-readable labels and cumulative progress.
 # Progress values represent the percentage when that phase completes.
@@ -26,8 +28,20 @@ PIPELINE_PHASES = [
 class PipelineController:
     """Controller that computes pipeline progress from result.json."""
 
-    def get_status(self, job_id: str) -> PipelineStatusResponse:
-        """Reads result.json and computes current stage + progress percentage."""
+    def get_status(self, job_id: str, current_user: dict) -> PipelineStatusResponse:
+        """Reads result.json and computes current stage + progress percentage after checking ownership."""
+        if db.is_enabled:
+            try:
+                res = db.get_client().table("jobs").select("user_id").eq("job_id", job_id).execute()
+                if not res.data:
+                    raise HTTPException(status_code=404, detail="Job not found.")
+                if res.data[0]["user_id"] != current_user["id"]:
+                    raise HTTPException(status_code=403, detail="Forbidden: You do not own this job.")
+            except Exception as e:
+                if isinstance(e, HTTPException):
+                    raise
+                raise HTTPException(status_code=500, detail=f"Database ownership verification failed: {e}")
+
         job_dir = os.path.join(settings.OUTPUT_DIR, job_id)
 
         # Check if job directory exists

@@ -1,4 +1,5 @@
 import os
+import time
 from backend.app.core.settings import settings
 from backend.app.utils.logger import logger
 from backend.app.utils.artifacts_manager import artifacts_manager
@@ -25,6 +26,7 @@ from backend.app.pipeline.pointcloud_pipeline import run_dbscan_segmentation_pip
 def execute_full_reconstruction_pipeline(job_id: str, original_image_path: str):
     """Executes all 14 pipeline stages sequentially in the background for a job."""
     logger.info(f"Starting Background Reconstruction Pipeline for Job: {job_id}")
+    start_time = time.time()
     try:
         # 1. Image Analysis & CLAHE Enhancement (completed_phases: analysis, clahe)
         res = run_image_pipeline(job_id, original_image_path)
@@ -65,10 +67,36 @@ def execute_full_reconstruction_pipeline(job_id: str, original_image_path: str):
         # 11. DBSCAN Segmentation (completed_phases: dbscan_segmentation)
         run_dbscan_segmentation_pipeline(job_id)
 
+        duration = time.time() - start_time
+        
+        # Verify generated files
+        job_dir = os.path.join(settings.OUTPUT_DIR, job_id)
+        model_generated = os.path.exists(os.path.join(job_dir, "model.glb"))
+        pointcloud_generated = os.path.exists(os.path.join(job_dir, "pointcloud.ply"))
+
         # Update final status to completed
-        artifacts_manager.update_status(job_id, "completed")
+        artifacts_manager.update_status(
+            job_id=job_id, 
+            status="completed", 
+            duration=duration, 
+            model_generated=model_generated, 
+            pointcloud_generated=pointcloud_generated
+        )
         logger.info(f"Background Reconstruction Pipeline completed successfully for Job: {job_id}")
 
     except Exception as e:
+        duration = time.time() - start_time
         logger.error(f"Background Reconstruction Pipeline failed for Job {job_id}: {e}", exc_info=True)
-        artifacts_manager.update_status(job_id, "failed")
+        
+        job_dir = os.path.join(settings.OUTPUT_DIR, job_id)
+        model_generated = os.path.exists(os.path.join(job_dir, "model.glb"))
+        pointcloud_generated = os.path.exists(os.path.join(job_dir, "pointcloud.ply"))
+        
+        artifacts_manager.update_status(
+            job_id=job_id, 
+            status="failed", 
+            error_message=str(e), 
+            duration=duration, 
+            model_generated=model_generated, 
+            pointcloud_generated=pointcloud_generated
+        )

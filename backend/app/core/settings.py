@@ -117,6 +117,11 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 25
     DELETE_TEMP_FILES: bool = True
 
+    # Supabase configurations
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    SUPABASE_JWT_SECRET: str = ""
+
     # YAML loaded configurations
     app: ApplicationSettings = ApplicationSettings()
     image_processing: ImageProcessingSettings = ImageProcessingSettings()

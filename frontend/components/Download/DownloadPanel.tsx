@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Download, FileBox, Image as ImageIcon, FileText, Scan, Layers, Package, CheckCircle2 } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface DownloadPanelProps {
   jobId: string;
@@ -111,15 +112,21 @@ const CATEGORY_LABELS: Record<string, string> = {
 const CATEGORY_ORDER = ['model', 'image', 'data'];
 
 export default function DownloadPanel({ jobId }: DownloadPanelProps) {
+  const { session } = useAuth();
   const [availability, setAvailability] = useState<Record<string, boolean>>({});
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
 
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
   useEffect(() => {
+    if (!session) return;
     const fetchAvailability = async () => {
       try {
-        const response = await fetch(`${apiUrl}/download/${jobId}`);
+        const response = await fetch(`${apiUrl}/download/${jobId}`, {
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          },
+        });
         if (response.ok) {
           const data = await response.json();
           setAvailability(data.artifacts || {});
@@ -129,13 +136,13 @@ export default function DownloadPanel({ jobId }: DownloadPanelProps) {
       }
     };
     fetchAvailability();
-  }, [apiUrl, jobId]);
+  }, [apiUrl, jobId, session]);
 
   const handleDownload = (artifactKey: string) => {
     setLoadingKey(artifactKey);
-    const downloadUrl = `${apiUrl}/download/${jobId}/${artifactKey}`;
+    const token = session?.access_token || '';
+    const downloadUrl = `${apiUrl}/download/${jobId}/${artifactKey}?token=${token}`;
     
-    // Use a hidden anchor to trigger the browser download
     const link = document.createElement('a');
     link.href = downloadUrl;
     link.download = '';

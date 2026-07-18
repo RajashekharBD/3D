@@ -22,4 +22,5 @@ black>=24.2.0
 mypy>=1.8.0
 einops
 timm
-
+supabase>=2.4.0
+python-jose[cryptography]>=3.3.0
