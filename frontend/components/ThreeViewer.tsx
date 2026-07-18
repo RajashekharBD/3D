@@ -66,9 +66,15 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
     loader.load(
       glbUrl,
       (gltf) => {
-        setMeshObject(gltf.scene);
+        const scene = gltf.scene;
+        // Compute bounding box and adjust Y position to sit flat on the grid (Y = -0.5)
+        const box = new THREE.Box3().setFromObject(scene);
+        const yOffset = -0.5 - box.min.y;
+        scene.position.y += yOffset;
+
+        setMeshObject(scene);
         if (viewMode === 'mesh') {
-          setActiveObject(gltf.scene);
+          setActiveObject(scene);
         }
         setLoading(false);
       },
@@ -105,6 +111,11 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
             geometry,
             new THREE.PointsMaterial({ size: 0.03, vertexColors: true })
           );
+          // Compute bounding box and adjust Y position to sit flat on the grid (Y = -0.5)
+          const box = new THREE.Box3().setFromObject(points);
+          const yOffset = -0.5 - box.min.y;
+          points.position.y += yOffset;
+
           setActiveObject(points);
         }
       },
@@ -125,6 +136,11 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
         plyGeometry,
         new THREE.PointsMaterial({ size: 0.03, vertexColors: true })
       );
+      // Compute bounding box and adjust Y position to sit flat on the grid (Y = -0.5)
+      const box = new THREE.Box3().setFromObject(points);
+      const yOffset = -0.5 - box.min.y;
+      points.position.y += yOffset;
+
       setActiveObject(points);
     }
   }, [viewMode, meshObject, plyGeometry]);
