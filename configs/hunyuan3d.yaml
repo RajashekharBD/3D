@@ -1,6 +1,15 @@
 hunyuan3d:
-  shape_steps: 50
+  shape_steps: 30
   guidance_scale: 5.5
-  texture_steps: 20
-  texture_resolution: 1024
+  texture_steps: 10
+  texture_resolution: 512
   export_format: glb
+  octree_resolution: 256
+  use_fp16: true
+  cpu_offload: true
+  sequential_cpu_offload: true
+  attention_slicing: true
+  vae_slicing: true
+  vae_tiling: true
+  lazy_loading: true
+  retry_on_oom: true

@@ -4,9 +4,14 @@ from backend.app.main import app
 
 client = TestClient(app)
 
+from PIL import Image
+
 def test_upload_success():
-    # Simulate a small valid PNG upload
-    file_content = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR" + b"\x00" * 20
+    # Simulate a small valid PNG upload using Pillow
+    img_byte_arr = io.BytesIO()
+    Image.new('RGB', (100, 100), color='blue').save(img_byte_arr, format='PNG')
+    file_content = img_byte_arr.getvalue()
+    
     file_data = {"image": ("test.png", io.BytesIO(file_content), "image/png")}
     response = client.post("/api/v1/upload", files=file_data)
     

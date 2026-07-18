@@ -28,6 +28,12 @@ class ImageSettings(BaseModel):
     brightness_threshold: float = 0.30
     contrast_threshold: float = 0.15
     apply_clahe: bool = True
+    max_width: int = 6000
+    max_height: int = 6000
+    min_width: int = 10
+    min_height: int = 10
+    low_memory_resize: bool = True
+    target_size: int = 1024
 
 class ClaheSettings(BaseModel):
     clip_limit: float = 2.0
@@ -64,11 +70,20 @@ class RembgSettings(BaseModel):
     output_format: str = "RGBA"
 
 class Hunyuan3DSettings(BaseModel):
-    shape_steps: int = 50
+    shape_steps: int = 10
     guidance_scale: float = 5.5
-    texture_steps: int = 20
-    texture_resolution: int = 1024
+    texture_steps: int = 5
+    texture_resolution: int = 256
     export_format: str = "glb"
+    octree_resolution: int = 128
+    use_fp16: bool = True
+    cpu_offload: bool = True
+    sequential_cpu_offload: bool = True
+    attention_slicing: bool = True
+    vae_slicing: bool = True
+    vae_tiling: bool = True
+    lazy_loading: bool = True
+    retry_on_oom: bool = True
 
 class PointCloudSettings(BaseModel):
     target_points: int = 100000
@@ -101,6 +116,11 @@ class Settings(BaseSettings):
     TEMP_DIR: str = "data/temp"
     MAX_UPLOAD_SIZE_MB: int = 25
     DELETE_TEMP_FILES: bool = True
+
+    # Supabase configurations
+    SUPABASE_URL: str = ""
+    SUPABASE_SERVICE_ROLE_KEY: str = ""
+    SUPABASE_JWT_SECRET: str = ""
 
     # YAML loaded configurations
     app: ApplicationSettings = ApplicationSettings()
