@@ -4,7 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import ThreeViewer from '../../../components/ThreeViewer';
 import DownloadPanel from '../../../components/Download/DownloadPanel';
-import { ArrowLeft, AlertTriangle, Loader2 } from 'lucide-react';
+import { ArrowLeft, AlertTriangle, Loader2, Info, CheckCircle } from 'lucide-react';
 
 import ProtectedRoute from '@/components/Auth/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
@@ -76,19 +76,23 @@ export default function ResultsPage() {
 
   return (
     <ProtectedRoute>
-      <div className="flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow">
+      <div className="relative flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow z-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-800 pb-6 mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-900/60 pb-6 mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Reconstruction Results</h1>
-            <p className="text-sm text-slate-400 mt-1">Job ID: {jobId}</p>
+            <div className="inline-flex items-center space-x-1.5 text-xs text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full mb-2 font-medium border border-green-500/10">
+              <CheckCircle size={10} />
+              <span>Processing Complete</span>
+            </div>
+            <h1 className="text-3xl font-extrabold tracking-tight text-white">Reconstruction Results</h1>
+            <p className="text-xs text-slate-500 mt-1">Job ID: {jobId}</p>
           </div>
           <div className="flex space-x-3">
             <button 
               onClick={() => router.push('/upload')}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 rounded-lg text-sm transition-colors cursor-pointer"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900/60 hover:bg-slate-900 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-xl text-sm transition-all cursor-pointer backdrop-blur-sm"
             >
-              <ArrowLeft size={16} />
+              <ArrowLeft size={14} />
               <span>Back to Upload</span>
             </button>
           </div>
@@ -96,31 +100,33 @@ export default function ResultsPage() {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 3D Viewer Panel */}
-          <div className="lg:col-span-2 flex flex-col space-y-4">
-            <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
+          <div className="lg:col-span-2 flex flex-col space-y-6">
+            <div className="shadow-2xl rounded-2xl overflow-hidden border border-slate-900 bg-slate-950/20">
+              <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
+            </div>
             
             {/* Metadata Metrics Panel */}
             {resultData && (
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 bg-slate-900/50 border border-slate-900 rounded-xl">
-                <div className="flex flex-col">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 glass-card rounded-2xl">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Vertices</span>
                   <span className="text-xl font-extrabold text-white mt-1">
                     {resultData.mesh_metadata?.vertex_count?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Faces</span>
                   <span className="text-xl font-extrabold text-white mt-1">
                     {resultData.mesh_metadata?.face_count?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Points Sampled</span>
                   <span className="text-xl font-extrabold text-white mt-1">
                     {resultData.pointcloud_metadata?.point_count?.toLocaleString() || '100,000'}
                   </span>
                 </div>
-                <div className="flex flex-col">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Semantic Clusters</span>
                   <span className="text-xl font-extrabold text-white mt-1">
                     {resultData.dbscan_metadata?.total_clusters || '1'}
@@ -132,8 +138,11 @@ export default function ResultsPage() {
 
           {/* Download Panel */}
           <div className="flex flex-col space-y-6">
-            <div className="p-6 bg-slate-900/30 border border-slate-900 rounded-2xl">
-              <h2 className="text-lg font-bold mb-5 text-white">Pipeline Deliverables</h2>
+            <div className="p-6 glass-card rounded-2xl shadow-xl">
+              <div className="flex items-center space-x-2 mb-5">
+                <Info size={16} className="text-blue-400" />
+                <h2 className="text-lg font-bold text-white">Pipeline Deliverables</h2>
+              </div>
               <DownloadPanel jobId={jobId} />
             </div>
           </div>
