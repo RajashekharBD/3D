@@ -113,21 +113,21 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
   const isComplete = pipelineStatus === 'completed' || progress >= 100;
 
   return (
-    <div className="w-full max-w-lg mx-auto">
+    <div className="w-full max-w-lg mx-auto z-10">
       {/* Main Progress Card */}
-      <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-8 mb-6 backdrop-blur-sm">
+      <div className="glass-card rounded-2xl p-8 mb-6 shadow-2xl">
         {/* Status Icon */}
         <div className="flex justify-center mb-6">
           {isFailed ? (
-            <div className="w-16 h-16 rounded-full bg-red-950/50 border border-red-900/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-red-950/30 border border-red-900/40 flex items-center justify-center shadow-lg">
               <XCircle className="w-8 h-8 text-red-500" />
             </div>
           ) : isComplete ? (
-            <div className="w-16 h-16 rounded-full bg-emerald-950/50 border border-emerald-900/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-950/30 border border-emerald-900/40 flex items-center justify-center shadow-lg animate-pulse">
               <CheckCircle2 className="w-8 h-8 text-emerald-400" />
             </div>
           ) : (
-            <div className="w-16 h-16 rounded-full bg-blue-950/50 border border-blue-900/50 flex items-center justify-center">
+            <div className="w-16 h-16 rounded-full bg-blue-950/30 border border-blue-900/40 flex items-center justify-center shadow-lg">
               <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
             </div>
           )}
@@ -157,14 +157,14 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-slate-800/80 h-2.5 rounded-full overflow-hidden">
+          <div className="w-full bg-slate-950/60 h-2.5 rounded-full overflow-hidden border border-slate-900">
             <div
               className={`h-full transition-all duration-700 ease-out rounded-full ${
                 isFailed
                   ? 'bg-red-500'
                   : isComplete
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
-                    : 'bg-gradient-to-r from-blue-500 to-indigo-500'
+                    : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500'
               }`}
               style={{ width: `${progress}%` }}
             />
@@ -177,9 +177,9 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
       </div>
 
       {/* Phase List */}
-      <div className="bg-slate-900/40 border border-slate-900 rounded-xl p-5">
-        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-4 flex items-center space-x-1.5">
-          <Zap size={12} />
+      <div className="glass-card rounded-2xl p-6 shadow-xl">
+        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-4 flex items-center space-x-1.5 border-b border-slate-900/60 pb-3">
+          <Zap size={12} className="text-indigo-400 animate-pulse" />
           <span>Pipeline Stages</span>
         </h3>
         <div className="space-y-2">
