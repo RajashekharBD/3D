@@ -24,7 +24,12 @@ from backend.app.pipeline.generation_pipeline import (
 from backend.app.pipeline.pointcloud_pipeline import run_dbscan_segmentation_pipeline
 
 def execute_full_reconstruction_pipeline(job_id: str, original_image_path: str):
-    """Executes all 14 pipeline stages sequentially in the background for a job."""
+    """Executes all 14 pipeline stages sequentially in the background for a job.
+    
+    Automatically classifies the image. If it is a floor plan, routes it to the
+    specialized procedural extrusion pipeline; otherwise, routes it to the standard
+    GPU object reconstruction pipeline.
+    """
     logger.info(f"Starting Background Reconstruction Pipeline for Job: {job_id}")
     start_time = time.time()
     try:

@@ -43,6 +43,15 @@ outputs/*/
 logs/*.log
 !logs/.gitkeep
 
+# AI Models & Checkpoints
+ai_models/*
+!ai_models/.gitkeep
+!ai_models/*/.gitkeep
+
+# Pytest & Coverage
+.coverage
+.pytest_cache/
+
 # IDEs & System files
 .vscode/
 .idea/

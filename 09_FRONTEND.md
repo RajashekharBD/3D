@@ -3,631 +3,245 @@
 
 ## Overview
 
-The frontend provides a clean, responsive, and interactive interface for users to upload an image, monitor AI processing, preview outputs, visualize the generated 3D model, and download all generated assets.
+The frontend provides a clean, responsive interface for users to upload an image, monitor AI processing, preview outputs, visualize the generated 3D model, and download all generated assets.
 
-The frontend is built using:
-
-- Next.js 15
+Built with:
+- Next.js 15 (App Router)
 - React 19
 - TypeScript
 - Tailwind CSS
-- React Three Fiber
-- Drei
-- Three.js
-
----
-
-# Frontend Goals
-
-The application should:
-
-- Be simple to use
-- Be responsive
-- Display real-time pipeline progress
-- Visualize generated GLB models
-- Preview generated images
-- Allow downloading all outputs
-- Handle errors gracefully
+- React Three Fiber + Drei + Three.js
+- Supabase Auth (client-side)
 
 ---
 
 # User Workflow
 
 ```
-Home
-
-↓
-
-Upload Image
-
-↓
-
-Image Preview
-
-↓
-
-Upload
-
-↓
-
-Pipeline Processing
-
-↓
-
-Progress Screen
-
-↓
-
-Results Screen
-
-↓
-
-3D Viewer
-
-↓
-
-Download Files
+Home (/)
+  │
+  ▼
+Login / Signup (/login, /signup)
+  │
+  ▼
+Upload Image (/upload)
+  │
+  ▼
+Processing Progress (/processing/[jobId])
+  │
+  ▼
+Results + 3D Viewer (/results/[jobId])
+  │
+  ▼
+Download Artifacts (inline in results page)
+  │
+  ▼
+History (/history) — browse past jobs
+  │
+  ▼
+Profile (/profile) — stats & account info
 ```
 
 ---
 
-# Application Structure
-
-```
-frontend/
-
-app/
-
-components/
-
-hooks/
-
-services/
-
-types/
-
-utils/
-
-public/
-```
-
----
-
-# Pages
-
-## Home
-
-Route
-
-```
-/
-```
-
-Purpose
-
-Landing page.
-
-Components
-
-- Hero
-- Features
-- Start Button
-
----
-
-## Upload
-
-Route
-
-```
-/upload
-```
-
-Purpose
-
-Upload image.
-
-Components
-
-- Drag & Drop Area
-- File Picker
-- Image Preview
-- Upload Button
-
----
-
-## Processing
-
-Route
-
-```
-/processing/[jobId]
-```
-
-Purpose
-
-Display processing progress.
-
-Components
-
-- Progress Bar
-- Current Stage
-- Estimated Time
-- Status Message
-
----
-
-## Results
-
-Route
-
-```
-/results/[jobId]
-```
-
-Purpose
-
-Display generated outputs.
-
-Components
-
-- Detection Image
-- Segmentation Image
-- RGBA Image
-- 3D Viewer
-- Download Buttons
-
----
-
-# Layout
-
-```
-Navbar
-
-↓
-
-Main Content
-
-↓
-
-Footer
-```
-
----
-
-# Navbar
-
-Contains
-
-- Logo
-- Home
-- Upload
-- About
-
----
-
-# Footer
-
-Contains
-
-- Copyright
-- Version
-- GitHub
-- Documentation
-
----
-
-# Components
-
-## Upload Component
-
-Purpose
-
-Select image.
-
-Features
-
-- Drag & Drop
-- File Picker
-- Preview
-- Validation
-
----
-
-## Image Preview
-
-Shows
-
-Original Image
-
----
-
-## Progress Component
-
-Displays
-
-Progress Bar
-
-Current Stage
-
-Remaining Time
-
-Status
-
----
-
-## Result Card
-
-Displays
-
-Generated Image
-
-Download Button
-
----
-
-## Download Panel
-
-Contains
-
-Download buttons for
-
-- GLB
-- Point Cloud
-- Detection Image
-- Segmentation Image
-- RGBA Image
-- Metadata
-
----
-
-## 3D Viewer
-
-Technology
-
-React Three Fiber
-
-Purpose
-
-Display GLB
-
-Features
-
-- Orbit Controls
-- Zoom
-- Rotate
-- Pan
-- Auto Fit
-- Reset Camera
-
----
-
-# State Management
-
-React State
-
-Stores
-
-- Uploaded Image
-- Job ID
-- Progress
-- Status
-- Output URLs
-- Errors
-
----
-
-# API Communication
-
-Upload
-
-↓
-
-Receive Job ID
-
-↓
-
-Poll Status
-
-↓
-
-Completed
-
-↓
-
-Load Results
-
----
-
-# Progress Stages
-
-```
-0%
-
-Uploading
-
-↓
-
-10%
-
-Image Analysis
-
-↓
-
-20%
-
-CLAHE
-
-↓
-
-30%
-
-Caption Generation
-
-↓
-
-45%
-
-Object Detection
-
-↓
-
-60%
-
-Segmentation
-
-↓
-
-70%
-
-Background Removal
-
-↓
-
-80%
-
-3D Generation
-
-↓
-
-95%
-
-Point Cloud
-
-↓
-
-100%
-
-Completed
-```
-
----
-
-# File Validation
-
-Allowed
-
-- JPG
-- JPEG
-- PNG
-- WEBP
-- BMP
-
-Maximum Size
-
-25 MB
-
-Validation
-
-- File Type
-- File Size
-- Image Readability
-
----
-
-# Error Handling
-
-Upload Error
-
-↓
-
-Show Error Message
-
-↓
-
-Retry
-
----
-
-Pipeline Error
-
-↓
-
-Display Failed Stage
-
-↓
-
-Retry Button
-
----
-
-Download Error
-
-↓
-
-Retry Download
-
----
-
-# Loading Indicators
-
-Upload
-
-↓
-
-Spinner
-
-↓
-
-Progress Bar
-
-↓
-
-Completed Badge
-
----
-
-# Responsive Design
-
-Supported Devices
-
-Desktop
-
-Laptop
-
-Tablet
-
-Mobile
-
----
-
-# Theme
-
-Primary
-
-Blue
-
-Secondary
-
-Gray
-
-Success
-
-Green
-
-Error
-
-Red
-
-Warning
-
-Yellow
-
----
-
-# Typography
-
-Headings
-
-Bold
-
-Body
-
-Regular
-
-Buttons
-
-Medium
-
----
-
-# Accessibility
-
-- Keyboard Navigation
-- Screen Reader Support
-- High Contrast
-- Visible Focus States
-- Alt Text for Images
-
----
-
-# Performance
-
-- Lazy Loading
-- Image Optimization
-- Dynamic Imports
-- Code Splitting
-- GLB Lazy Loading
-
----
-
-# Security
-
-- Validate File Type
-- Validate File Size
-- Sanitize File Name
-- Prevent Multiple Uploads
+# Routes
+
+| Route | Page | Auth |
+|-------|------|------|
+| `/` | Landing page (hero + features) | No |
+| `/upload` | Image upload (drag & drop) | Protected |
+| `/processing/[jobId]` | Pipeline progress tracker | Protected |
+| `/results/[jobId]` | Reconstruction results + 3D viewer | Protected |
+| `/login` | Login form | No |
+| `/signup` | Registration form | No |
+| `/forgot-password` | Password reset | No |
+| `/history` | Paginated job history grid | Protected |
+| `/profile` | User profile + statistics | Protected |
+| `/viewer` | Generic 3D viewer (redirect to upload) | No |
+| `/download` | Generic download page (redirect to upload) | No |
 
 ---
 
 # Folder Structure
 
 ```
-components/
-
-Upload/
-
-Progress/
-
-Viewer/
-
-Results/
-
-Download/
-
-Navbar/
-
-Footer/
-
-Common/
+frontend/
+  app/
+    page.tsx                     → Landing page (/)
+    layout.tsx                   → Root layout (Navbar + AuthProvider + Footer)
+    upload/page.tsx              → Image upload (/upload)
+    processing/[jobId]/page.tsx  → Progress tracker (/processing/[jobId])
+    results/[jobId]/page.tsx     → Results + 3D viewer (/results/[jobId])
+    login/page.tsx               → Login form (/login)
+    signup/page.tsx              → Signup form (/signup)
+    forgot-password/page.tsx     → Forgot password (/forgot-password)
+    history/page.tsx             → Job history (/history)
+    profile/page.tsx             → User profile (/profile)
+    viewer/page.tsx              → Viewer redirect (/viewer)
+    download/page.tsx            → Download redirect (/download)
+  components/
+    Auth/
+      LoginForm.tsx
+      SignupForm.tsx
+      ForgotPasswordForm.tsx
+      ProtectedRoute.tsx
+    Download/
+      DownloadPanel.tsx          → Artifact download buttons
+    Footer/
+      Footer.tsx
+    History/
+      HistoryGrid.tsx            → Paginated searchable grid
+      HistoryCard.tsx            → Individual job card
+      SearchBar.tsx
+      SortMenu.tsx
+    Navbar/
+      Navbar.tsx                 → Nav with auth-aware links
+    Profile/
+      ProfileCard.tsx            → User info card
+      StatisticsCard.tsx         → Usage stats
+    Progress/
+      ProgressTracker.tsx        → Live pipeline progress + phase list
+    ThreeViewer.tsx              → GLB/PLY viewer (R3F)
+  context/
+    AuthContext.tsx              → Supabase auth state provider
+  utils/
+    supabaseClient.ts           → Supabase client singleton
 ```
 
 ---
 
-# User Journey
+# Key Components
 
-```
-Open Website
+## ProtectedRoute
 
-↓
+Wraps pages that require authentication. Redirects to `/login?redirectTo=` if not authenticated. Renders a loading spinner while auth state resolves.
 
-Upload Image
+## ProgressTracker
 
-↓
+- Polls `GET /api/v1/pipeline/status/{jobId}` every 3 seconds
+- Displays progress bar, current stage label, and phase checklist (all 14 stages)
+- Auto-redirects to `/results/[jobId]` on completion
+- Stops polling on failure and shows error
 
-Preview
+## ThreeViewer
 
-↓
+- Renders GLB mesh or PLY point cloud via React Three Fiber
+- Mesh/Point Cloud toggle buttons
+- Orbit controls (rotate, zoom, pan)
+- Auto-fit camera to bounding box
+- Fullscreen mode
+- Handles Float64→Float32 conversion for PLY
 
-Start Processing
+## DownloadPanel
 
-↓
+- Fetches artifact availability via `GET /api/v1/download/{jobId}`
+- Renders categorized download buttons (3D Assets / Image Artifacts / Metadata)
+- Triggers direct file download via `<a>` click
 
-Watch Progress
+## Navbar
 
-↓
+- Auth-aware: shows Login/Signup for guests, History/Profile/Logout for authenticated users
+- Active route highlighting
+- Logo + brand name
 
-View Results
+## HistoryGrid
 
-↓
-
-Inspect 3D Model
-
-↓
-
-Download Files
-```
+- Paginated grid of job cards
+- Search by filename, filter by status, sort by newest/oldest
+- Delete button with confirmation
+- Fetches from `GET /api/v1/history` with query params
 
 ---
 
-# Future Enhancements
+# State Management
 
-- Dark Mode
-- Batch Upload
-- Drag-and-Drop Multiple Files
-- Compare Original vs Generated
-- Full-Screen 3D Viewer
-- Measurement Tools
-- Share Results
-- Project History
-- User Accounts
+## AuthContext (React Context + Supabase)
+
+- Provides `user`, `session`, `loading`, `logout` globally
+- Initializes from `supabase.auth.getSession()`
+- Listens to `onAuthStateChange` for sign-in/sign-out events
+- All protected pages use `useAuth()` to attach `Authorization: Bearer` headers
+
+## Local State (per page)
+
+- Page-level `useState` for forms, loading, error, previews
+- No global store (Redux/Zustand) — kept intentionally minimal
+
+---
+
+# API Communication
+
+All API calls use native `fetch()` — no Axios or service wrappers.
+
+- Upload: `POST /api/v1/upload` (FormData with `Authorization` header)
+- Status polling: `GET /api/v1/pipeline/status/{jobId}`
+- Results: `GET /api/v1/download/{jobId}/result` (with `?token=` fallback for direct URLs)
+- Downloads: `GET /api/v1/download/{jobId}/{artifactKey}?token=...`
+- History: `GET /api/v1/history?...` + `DELETE /api/v1/history/{jobId}`
+- Profile: `GET /api/v1/profile`
+
+API base URL configured via `NEXT_PUBLIC_API_URL` env var (default `http://localhost:8000/api/v1`).
+
+---
+
+# Pipeline Stages (Frontend Display)
+
+```
+  Upload
+  Image Validation
+  Image Analysis
+  CLAHE Enhancement
+  Florence-2 Captioning
+  GroundingDINO Detection
+  Florence-2 Part Detection
+  SAM2.1 Segmentation
+  Background Removal
+  Hunyuan3D-2 Shape Generation
+  Hunyuan3D-2 Texture Generation
+  Mesh Validation
+  Point Cloud Generation
+  DBSCAN Segmentation
+```
+
+Displayed in ProgressTracker phase list with check/active/pending states.
+
+---
+
+# File Validation
+
+| Rule | Value |
+|------|-------|
+| Formats | JPG, JPEG, PNG, WEBP, BMP |
+| Max Size | 25 MB |
+| Checks | Extension, file size, image readability |
+
+---
+
+# Theme
+
+| Token | Color |
+|-------|-------|
+| Primary | Blue (gradient) |
+| Background | Slate-950 |
+| Card | Glass (backdrop-blur) |
+| Success | Emerald |
+| Error | Red |
+| Warning | Amber |
+
+---
+
+# Performance
+
+- Lazy loading via Next.js dynamic imports
+- Three.js scene loads on demand
+- Image optimization with next/image compatible patterns
+- Polling stops on completion/failure
+
+---
+
+# Security
+
+- JWT token sent in `Authorization` header for all authenticated requests
+- File type/size validated client-side before upload
+- Auth routes wrapped in `ProtectedRoute` redirect guard
+- Supabase session management via `onAuthStateChange`

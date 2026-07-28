@@ -87,6 +87,7 @@ class DownloadController:
             headers={"Content-Disposition": f"attachment; filename=\"{filename}\""}
         )
 
+
     def list_available_artifacts(self, job_id: str, current_user: dict) -> dict:
         """Returns a dict of artifact_key -> bool availability after ownership check."""
         self._verify_ownership(job_id, current_user)

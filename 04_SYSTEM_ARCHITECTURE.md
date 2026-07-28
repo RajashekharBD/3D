@@ -221,10 +221,6 @@ Mesh Validation
 
 Normal Computation
 
-↓
-
-Mesh Viewer
-
     │
       ▼
 ────────────────────────────────────
@@ -480,6 +476,10 @@ FastAPI
 
 ↓
 
+JWT Auth Middleware
+
+↓
+
 Controller
 
 ↓
@@ -512,33 +512,108 @@ Export Module
 
 ---
 
+# JWT Authentication
+
+All API routes (except `/api/v1/health`) require JWT authentication.
+
+The `get_current_user` dependency in `core/auth.py` performs:
+
+1. Extract token from `Authorization: Bearer` header or `token` query parameter
+2. Verify token against Supabase Auth API (`/auth/v1/user`)
+3. Return user dict with `id` and `email`
+4. Fall back to mock user if `SUPABASE_JWT_SECRET` is not configured (local development)
+
+Routes authenticate via FastAPI dependency injection in the controller layer.
+
+---
+
+# Database Sync
+
+The system syncs job state to Supabase via the `Database` class in `core/database.py`.
+
+- Jobs table: `job_id`, `user_id`, `status`, `original_filename`, `processing_duration_seconds`, `created_at`, `completed_at`
+- Artifacts table: `job_id`, `artifact_type`, `storage_path`, `file_size`, `mime_type`
+- Profiles table: `id`, `email`, `last_login`
+
+Database syncing is optional: if Supabase credentials are not configured, the system operates in local/mock mode using only the filesystem for state.
+
+---
+
+# Background Task Execution
+
+Pipeline execution is asynchronous. The upload endpoint uses FastAPI's `BackgroundTasks` to offload the full reconstruction pipeline.
+
+Flow:
+
+1. `POST /api/v1/upload` receives image and validates it synchronously
+2. Returns `job_id` immediately with status `processing`
+3. Pipeline runs in background via `BackgroundTasks.add_task(execute_full_reconstruction_pipeline, job_id, original_png_path)`
+4. Frontend polls `GET /api/v1/pipeline/{job_id}/status` to track progress
+5. Status is computed from `result.json` in the job's output directory
+
+---
+
 # Frontend Architecture
 
 User
 
 ↓
 
-Next.js
+Next.js App Router
+
+↓
+
+Pages
+
+├── Landing (/)
+
+├── Upload (/upload)
+
+├── Processing (/processing/[jobId])
+
+├── Results (/results/[jobId])
+
+├── Viewer (/viewer)
+
+├── Download (/download)
+
+├── History (/history)
+
+├── Profile (/profile)
+
+├── Login (/login)
+
+├── Signup (/signup)
+
+└── Forgot Password (/forgot-password)
 
 ↓
 
 React Components
 
+├── Auth (LoginForm, SignupForm, ForgotPasswordForm, ProtectedRoute)
+
+├── Download (DownloadPanel)
+
+├── Footer (Footer)
+
+├── History (HistoryGrid, HistoryCard, SearchBar, SortMenu)
+
+├── Navbar (Navbar)
+
+├── Profile (ProfileCard, StatisticsCard)
+
+├── Progress (ProgressTracker)
+
+└── ThreeViewer
+
 ↓
 
-Upload Page
+Context & Utils
 
-↓
+├── AuthContext (Supabase auth state management)
 
-Progress Page
-
-↓
-
-Viewer Page
-
-↓
-
-Download Page
+└── supabaseClient (Supabase client initialization)
 
 ---
 
@@ -592,77 +667,26 @@ Downloads
 
 ---
 
-# Error Handling Flow
+# Error Handling
 
-Upload Error
+The system uses a custom exception hierarchy defined in `core/exceptions.py`:
 
-↓
+- `BaseAppException` — base class with `status_code`, `message`, and optional `stage`
+- `ImageValidationError` — 400 errors for invalid uploads (empty file, bad format, corrupt, too large)
+- `PipelineError` — 500 errors during pipeline execution tagged with the failing stage
+- `NoObjectDetected` — 422 error when detection fails on all retries
 
-Validate Image
+The `ExceptionHandlingMiddleware` in `middleware/exception_middleware.py` catches all exceptions and returns consistent JSON responses:
 
-↓
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "stage": "FailingStage"  // optional
+}
+```
 
-Retry
-
-↓
-
-Abort
-
----
-
-Detection Failure
-
-↓
-
-Retry Detection
-
-↓
-
-Lower Threshold
-
-↓
-
-Enhanced Image
-
-↓
-
-Abort
-
----
-
-Segmentation Failure
-
-↓
-
-Retry SAM2
-
-↓
-
-Abort
-
----
-
-3D Failure
-
-↓
-
-Retry Generation
-
-↓
-
-Abort
-
----
-
-Point Cloud Failure
-
-↓
-
-Regenerate Mesh
-
-↓
-
-Retry
+Detection failures trigger retry with CLAHE-enhanced image and lowered thresholds before aborting.
 
 ---
 
@@ -730,7 +754,7 @@ Unload
 
 Clear CUDA Cache
 
-This sequential loading minimizes GPU memory usage and enables execution on GPUs with limited VRAM.
+This sequential loading minimizes GPU memory usage and enables execution on GPUs with limited VRAM. Hunyuan3D-2 additionally uses `cpu_offload`, `sequential_cpu_offload`, `attention_slicing`, `vae_slicing`, and `vae_tiling` to further reduce peak VRAM.
 
 ---
 
@@ -738,28 +762,43 @@ This sequential loading minimizes GPU memory usage and enables execution on GPUs
 
 outputs/
 
-images/
+<job_id>/
 
-- detection.png
-- segmentation.png
-- rgba.png
-
-meshes/
-
-- model.glb
-
-pointcloud/
-
-- pointcloud.ply
-- segmented_pointcloud.ply
-
-metadata/
+- original.png
 
 - result.json
 
-logs/
+- detection.png
 
-- pipeline.log
+- enhanced.png
+
+- segmentation.png
+
+- rgba.png
+
+- grounding_prompt.txt
+
+- caption.txt
+
+- mask.png
+
+- mask_overlay.png
+
+- part_detection.png
+
+- model.glb
+
+- model.obj (optional, based on pipeline stage)
+
+- pointcloud.ply
+
+- segmented_pointcloud.ply
+
+- preview.png
+
+- scene.json (floor plan pipeline)
+
+- debug/ (pipeline-specific debug artifacts)
 
 ---
 

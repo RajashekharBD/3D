@@ -27,10 +27,11 @@ class HistoryController:
                             try:
                                 data = artifacts_manager._read_result_json(job_id)
                                 status_val = data.get("status", "running")
+                                filename_val = data.get("original_filename", "uploaded_file.png")
                                 local_jobs.append({
                                     "job_id": job_id,
                                     "user_id": user_id,
-                                    "original_filename": "uploaded_file.png",
+                                    "original_filename": filename_val,
                                     "status": status_val,
                                     "started_at": data.get("started_at", "now()"),
                                     "completed_at": data.get("completed_at"),

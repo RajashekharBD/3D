@@ -1,0 +1,51 @@
+CustomerID,CustomerName,Gender,Age,City,ProductCategory,PurchaseAmount,Quantity,PaymentMethod,Rating
+1001,Aarav Sharma,Male,25,Bengaluru,Electronics,45999,1,UPI,5
+1002,Ananya Reddy,Female,30,Hyderabad,Fashion,2499,3,Credit Card,4
+1003,Rohan Patil,Male,28,Pune,Groceries,1850,10,Cash,4
+1004,Priya Nair,Female,35,Kochi,Home Appliances,32500,1,Debit Card,5
+1005,Vikram Singh,Male,42,Delhi,Furniture,28750,2,Net Banking,5
+1006,Meera Joshi,Female,26,Mumbai,Beauty,1750,4,UPI,3
+1007,Karan Verma,Male,31,Jaipur,Electronics,68999,1,Credit Card,5
+1008,Divya Rao,Female,29,Chennai,Fashion,3499,2,UPI,4
+1009,Arjun Kumar,Male,24,Mysuru,Sports,5299,2,Cash,4
+1010,Neha Gupta,Female,38,Lucknow,Jewellery,45999,1,Debit Card,5
+1011,Raj Malhotra,Male,33,Chandigarh,Groceries,2250,8,UPI,4
+1012,Sneha Kulkarni,Female,27,Nagpur,Books,1299,5,Cash,5
+1013,Amit Desai,Male,45,Ahmedabad,Furniture,41250,1,Net Banking,5
+1014,Kavya Iyer,Female,22,Coimbatore,Fashion,1899,2,UPI,4
+1015,Sachin Rao,Male,36,Vijayawada,Electronics,55999,1,Credit Card,5
+1016,Pooja Sharma,Female,32,Indore,Kitchen,6499,3,Debit Card,4
+1017,Rahul Das,Male,40,Kolkata,Home Decor,8450,2,UPI,4
+1018,Nisha Patel,Female,23,Surat,Beauty,2100,6,Cash,3
+1019,Harish Gowda,Male,34,Hubballi,Electronics,38999,1,Net Banking,5
+1020,Aishwarya Shetty,Female,28,Mangaluru,Fashion,4299,3,UPI,5
+1021,Deepak Kumar,Male,29,Bengaluru,Electronics,,1,Credit Card,5
+1022,Ritika Shah,Female,,Ahmedabad,Beauty,1999,2,UPI,4
+1023,Mohan Rao,Male,41,,Furniture,36500,1,Debit Card,5
+1024,Shreya Jain,Female,26,Pune,,2499,2,Cash,4
+1025,Ajay Verma,Male,37,Delhi,Kitchen,7999,,Net Banking,4
+1026,Anita Singh,Female,31,Hyderabad,Fashion,2899,3,,5
+1027,Rakesh Patil,Male,27,Nagpur,Sports,4899,2,UPI,
+1028,Pallavi Nair,Female,24,Kochi,Books,999,4,Cash,5
+1029,Sunil Kumar,Male,39,Chennai,Electronics,79999,1,Credit Card,5
+1030,Geetha Rao,Female,33,Bengaluru,Jewellery,125000,1,Debit Card,5
+1031,Arvind Sharma,Male,52,Delhi,Furniture,150000,1,Net Banking,5
+1032,Nikita Das,Female,20,Kolkata,Beauty,899,5,UPI,3
+1033,Prakash Joshi,Male,44,Jaipur,Home Appliances,41000,1,Credit Card,4
+1034,Keerthi Rao,Female,29,Mysuru,Fashion,3599,2,Cash,4
+1035,Sanjay Kulkarni,Male,31,Hubballi,Groceries,2400,9,UPI,4
+1036,Megha Patel,Female,34,Surat,Kitchen,6999,3,Debit Card,5
+1037,Rohit Sharma,Male,26,Indore,Sports,5599,2,Credit Card,4
+1038,Shruti Iyer,Female,27,Coimbatore,Books,1599,6,Cash,5
+1039,Vinay Kumar,Male,35,Mumbai,Electronics,47999,1,UPI,5
+1040,Preethi Gowda,Female,30,Mangaluru,Home Decor,8999,2,Net Banking,4
+1041,Aarav Sharma,Male,25,Bengaluru,Electronics,45999,1,UPI,5
+1042,Ananya Reddy,Female,30,Hyderabad,Fashion,2499,3,Credit Card,4
+1043,Rohan Patil,Male,28,Pune,Groceries,1850,10,Cash,4
+1044,Priya Nair,Female,35,Kochi,Home Appliances,32500,1,Debit Card,5
+1045,Vikram Singh,Male,42,Delhi,Furniture,28750,2,Net Banking,5
+1046,Test User,Male,120,TestCity,Electronics,999999,50,Cash,1
+1047,Demo User,Female,5,DemoCity,Beauty,50,100,UPI,2
+1048,Rajesh Rao,Male,46,Bengaluru,Furniture,68000,1,Credit Card,5
+1049,Swathi N,Female,38,Mysuru,Kitchen,7200,3,Debit Card,4
+1050,Kiran P,Male,29,Hubballi,Electronics,39999,1,UPI,5

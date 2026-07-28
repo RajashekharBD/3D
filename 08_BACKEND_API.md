@@ -3,37 +3,35 @@
 
 ## Overview
 
-The backend is responsible for:
+The backend is implemented using **FastAPI** and exposes REST APIs consumed by the Next.js frontend.
 
 - Receiving user uploads
-- Managing AI pipeline execution
+- Managing AI pipeline execution (background task)
 - Tracking job status
-- Managing output files
+- Managing output files and artifacts
 - Returning generated assets
-
-The backend is implemented using **FastAPI** and exposes REST APIs consumed by the frontend.
 
 ---
 
-# API Architecture
+# Architecture
 
 ```
 Next.js Frontend
-        │
-        ▼
- REST API (FastAPI)
-        │
-        ▼
- Pipeline Manager
-        │
-        ├── Image Processing
-        ├── Florence-2
-        ├── GroundingDINO
-        ├── SAM2.1
-        ├── rembg
-        ├── Hunyuan3D-2
-        ├── Open3D
-        └── DBSCAN
+      │
+      ▼
+  REST API (FastAPI) — /api/v1/*
+      │
+      ▼
+  Controllers → Pipeline (BackgroundTasks)
+      │
+      ├── Image Processing
+      ├── Florence-2
+      ├── GroundingDINO
+      ├── SAM2.1
+      ├── rembg
+      ├── Hunyuan3D-2
+      ├── Open3D
+      └── DBSCAN
 ```
 
 ---
@@ -56,568 +54,248 @@ https://your-domain.com/api/v1
 
 # Authentication
 
-Current Version
+All endpoints except `/api/v1/health` require **JWT authentication** via the `get_current_user` dependency.
 
-No Authentication
-
-Future
-
-JWT Authentication
+- Reads `Authorization: Bearer <token>` header
+- Verifies token against Supabase Auth API (`/auth/v1/user`)
+- Falls back to `token` query parameter for direct downloads
+- Returns mock user (`local_user@example.com`) when `SUPABASE_JWT_SECRET` is unset (development)
 
 ---
 
 # Response Format
 
-Success
+## Pipeline Status Response
 
 ```json
 {
-    "success": true,
-    "message": "Operation completed",
-    "data": {}
+  "job_id": "abc123",
+  "status": "running",
+  "current_stage": "GroundingDINO Detection",
+  "progress": 30,
+  "completed_phases": ["upload", "validation", "analysis", "clahe", "caption_generation"],
+  "artifacts": {"original": "original.png"}
 }
 ```
 
-Failure
+## Upload Response
 
 ```json
 {
-    "success": false,
-    "message": "Error description",
-    "error": {}
+  "job_id": "abc123"
 }
 ```
 
----
-
-# API 1
-
-## Health Check
-
-GET
-
-```
-/health
-```
-
-Purpose
-
-Check server status.
-
-Response
+## List Artifacts Response
 
 ```json
 {
-  "status":"healthy"
+  "job_id": "abc123",
+  "artifacts": {
+    "model": true,
+    "pointcloud": false,
+    "segmented_pointcloud": false,
+    "rgba": true,
+    "detection": true,
+    "segmentation": true
+  }
 }
 ```
 
----
-
-# API 2
-
-## Upload Image
-
-POST
-
-```
-/upload
-```
-
-Request
-
-Multipart Form Data
-
-Field
-
-```
-image
-```
-
-Supported
-
-- JPG
-- JPEG
-- PNG
-- WEBP
-- BMP
-
-Response
+## Error Response
 
 ```json
 {
-  "job_id":"abc123"
+  "success": false,
+  "message": "GroundingDINO detection failed.",
+  "stage": "GroundingDINO"
 }
 ```
 
 ---
 
-# API 3
+# Endpoints
 
-## Start Pipeline
-
-POST
+## 1. Health Check
 
 ```
-/pipeline/start/{job_id}
+GET /health
 ```
 
-Purpose
+No authentication required.
 
-Starts complete AI pipeline.
-
-Stages
-
-- Validation
-- Enhancement
-- Detection
-- Segmentation
-- Background Removal
-- 3D Generation
-- Point Cloud
-- Export
-
-Response
-
-```json
-{
-    "status":"started"
-}
-```
+Response: `{"status": "healthy"}`
 
 ---
 
-# API 4
-
-## Pipeline Status
-
-GET
+## 2. Upload Image
 
 ```
-/pipeline/status/{job_id}
+POST /upload
 ```
 
-Example Response
+**Auth**: Required
 
-```json
-{
-  "job_id":"abc123",
+**Request**: Multipart form data, field `image`
 
-  "status":"running",
+Supported: JPG, JPEG, PNG, WEBP, BMP (max 25 MB)
 
-  "stage":"GroundingDINO",
+**Response**: `{"job_id": "abc123"}`
 
-  "progress":38
-}
-```
-
-Possible Status
-
-Queued
-
-Running
-
-Completed
-
-Failed
-
-Cancelled
+Pipeline starts automatically as a **background task** after upload — no separate start endpoint.
 
 ---
 
-# API 5
-
-## Pipeline Result
-
-GET
+## 3. Pipeline Status
 
 ```
-/pipeline/result/{job_id}
+GET /pipeline/status/{job_id}
 ```
 
-Response
+**Auth**: Required
 
-```json
-{
-    "status":"completed",
+Returns current processing status and progress.
 
-    "outputs":{
+**Status values**: `processing`, `completed`, `failed`, `not_found`
 
-        "detection_image":"...",
-
-        "segmentation_image":"...",
-
-        "rgba":"...",
-
-        "glb":"...",
-
-        "pointcloud":"...",
-
-        "segmented_pointcloud":"..."
-    }
-}
-```
+**Progress** computed from completed phases (0–100).
 
 ---
 
-# API 6
-
-## Download GLB
-
-GET
+## 4. List Artifacts
 
 ```
-/download/glb/{job_id}
+GET /download/{job_id}
 ```
 
-Returns
+**Auth**: Required
 
-GLB File
+Returns availability map of all artifact keys.
+
+**Artifact keys**: model, pointcloud, segmented_pointcloud, rgba, detection, segmentation, mask_overlay, result, original, enhanced, caption, grounding_prompt, part_detection, mask
 
 ---
 
-# API 7
-
-## Download Point Cloud
-
-GET
+## 5. Download Artifact
 
 ```
-/download/pointcloud/{job_id}
+GET /download/{job_id}/{artifact_key}
 ```
 
-Returns
+**Auth**: Required (query param `?token=` also accepted for direct links)
 
-PLY File
+Returns the file as a download attachment with appropriate `Content-Type`.
 
 ---
 
-# API 8
-
-## Download RGBA Image
-
-GET
+## 6. History — List Jobs
 
 ```
-/download/rgba/{job_id}
+GET /history
 ```
 
-Returns
+**Auth**: Required
 
-PNG
+Query params: `filename`, `status`, `sort_by` (newest/oldest), `page`
+
+Returns paginated job list for the authenticated user.
 
 ---
 
-# API 9
-
-## Download Detection Image
-
-GET
+## 7. History — Job Detail
 
 ```
-/download/detection/{job_id}
+GET /history/{job_id}
 ```
+
+**Auth**: Required
+
+Returns full job record + associated artifacts.
 
 ---
 
-# API 10
-
-## Download Segmentation Image
-
-GET
+## 8. History — Delete Job
 
 ```
-/download/segmentation/{job_id}
+DELETE /history/{job_id}
 ```
+
+**Auth**: Required
+
+Performs soft delete in database + removes local `outputs/<job_id>/` directory.
 
 ---
 
-# API 11
-
-## Download Metadata
-
-GET
+## 9. Profile
 
 ```
-/download/report/{job_id}
+GET /profile
 ```
 
-Returns
+**Auth**: Required
 
-JSON
-
----
-
-# API 12
-
-## Delete Job
-
-DELETE
-
-```
-/jobs/{job_id}
-```
-
-Purpose
-
-Delete temporary files.
+Returns user profile info and usage statistics (total uploads, completed/failed jobs, models generated, etc.).
 
 ---
 
 # Pipeline Progress
 
-0%
+```
+  0% — Upload
+  5% — Validation
+  8% — Image Analysis
+ 12% — CLAHE Enhancement
+ 16% — Florence-2 Captioning
+ 22% — GroundingDINO Detection
+ 30% — Florence-2 Part Detection
+ 36% — SAM2.1 Segmentation
+ 44% — Background Removal
+ 50% — Hunyuan3D-2 Shape Generation
+ 65% — Hunyuan3D-2 Texture Generation
+ 78% — Mesh Validation
+ 82% — Point Cloud Generation
+ 90% — DBSCAN Segmentation
+ 98% — Completed (100%)
+```
 
-Upload Complete
-
-↓
-
-5%
-
-Validation
-
-↓
-
-10%
-
-Image Analysis
-
-↓
-
-15%
-
-CLAHE
-
-↓
-
-25%
-
-Florence-2
-
-↓
-
-40%
-
-GroundingDINO
-
-↓
-
-50%
-
-Part Detection
-
-↓
-
-60%
-
-SAM2.1
-
-↓
-
-70%
-
-Background Removal
-
-↓
-
-80%
-
-Hunyuan3D Shape
-
-↓
-
-90%
-
-Texture Generation
-
-↓
-
-95%
-
-Point Cloud
-
-↓
-
-100%
-
-Completed
+Progress is calculated by the last completed phase in `result.json`.
 
 ---
 
 # HTTP Status Codes
 
-200
-
-Success
-
-201
-
-Created
-
-400
-
-Bad Request
-
-404
-
-Not Found
-
-422
-
-Validation Error
-
-500
-
-Internal Error
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 201 | Created |
+| 400 | Bad Request |
+| 401 | Unauthorized |
+| 403 | Forbidden |
+| 404 | Not Found |
+| 422 | Validation Error |
+| 500 | Internal Error |
 
 ---
 
 # File Limits
 
-Maximum Upload
-
-25 MB
-
-Supported Formats
-
-JPG
-
-JPEG
-
-PNG
-
-WEBP
-
-BMP
-
----
-
-# Output Files
-
-```
-outputs/
-
-images/
-
-meshes/
-
-pointcloud/
-
-metadata/
-```
-
----
-
-# Error Response
-
-Example
-
-```json
-{
-  "success":false,
-
-  "message":"GroundingDINO detection failed.",
-
-  "stage":"GroundingDINO"
-}
-```
-
----
-
-# API Flow
-
-```
-Upload Image
-
-↓
-
-Receive Job ID
-
-↓
-
-Start Pipeline
-
-↓
-
-Check Status
-
-↓
-
-Pipeline Complete
-
-↓
-
-Download Outputs
-```
+| Property | Value |
+|----------|-------|
+| Max Upload | 25 MB |
+| Formats | JPG, JPEG, PNG, WEBP, BMP |
 
 ---
 
 # Backend Modules
 
 ```
-Upload API
-
-↓
-
-Pipeline Manager
-
-↓
-
-AI Model Manager
-
-↓
-
-Mesh Generator
-
-↓
-
-Point Cloud Generator
-
-↓
-
-Export Manager
+backend/app/
+  api/          → Route definitions (health, upload, pipeline, download, history, profile)
+  controllers/  → Business logic per endpoint
+  pipeline/     → Stage execution (image, detection, segmentation, generation, pointcloud)
+  services/     → Reusable services (storage, image, mesh, pointcloud)
+  core/         → Settings, auth, database, exceptions, constants
+  schemas/      → Pydantic response/request models
+  middleware/   → Exception handling
+  utils/        → Artifacts manager, validators, image/mesh/pointcloud utils
 ```
-
----
-
-# Logging
-
-Each request stores
-
-- Job ID
-- Request Time
-- Pipeline Stage
-- Processing Time
-- Errors
-- Output Files
-
----
-
-# API Versioning
-
-Current
-
-```
-v1
-```
-
-Future
-
-```
-v2
-```
-
-Backward compatibility will be maintained.
-
----
-
-# Future APIs
-
-Future versions may include:
-
-- Batch image processing
-- Multiple object reconstruction
-- User authentication
-- Project history
-- Cloud storage integration
-- WebSocket live progress

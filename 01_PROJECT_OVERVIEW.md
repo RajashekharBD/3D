@@ -20,6 +20,30 @@ The generated outputs are suitable for:
 
 ---
 
+# Authentication & User Management
+
+The system uses **Supabase Auth** for secure user authentication:
+
+- Email/password signup and login.
+- JWT-based session management.
+- Bearer token forwarded to the FastAPI backend for all authenticated API calls.
+- Protected routes in the frontend redirect unauthenticated users to login.
+- Local development fallback (mock user) when Supabase credentials are not configured.
+
+---
+
+# Database
+
+**Supabase PostgreSQL** stores persistent data:
+
+- **profiles** — User profiles synced automatically from `auth.users` via database triggers.
+- **jobs** — Pipeline execution records with status, timing, and output flags.
+- **artifacts** — File metadata for every output generated during a pipeline run.
+
+Row Level Security (RLS) ensures users can only access their own data. When Supabase is unavailable, the system falls back to local JSON file storage.
+
+---
+
 # Objectives
 
 The project aims to:
@@ -33,11 +57,15 @@ The project aims to:
 - Convert the mesh into a dense point cloud.
 - Segment the point cloud into meaningful clusters.
 - Export standard 3D formats.
+- Authenticate users and persist job history.
 
 ---
 
 # Core Features
 
+- User authentication (signup, login, password reset)
+- Persistent job history with pagination, search, and filtering
+- User profile with usage statistics
 - Single image upload
 - Automatic image enhancement
 - AI caption generation
@@ -49,7 +77,7 @@ The project aims to:
 - Mesh visualization
 - Point cloud generation
 - DBSCAN clustering
-- Downloadable outputs
+- Downloadable outputs (GLB, PLY, PNG, JSON)
 
 ---
 
@@ -75,6 +103,7 @@ Generated Files
 - GLB Mesh
 - Point Cloud (.PLY)
 - Segmented Point Cloud (.PLY)
+- JSON metadata (always generated)
 
 ---
 
@@ -83,7 +112,7 @@ Generated Files
 - Florence-2
 - GroundingDINO
 - SAM2.1
-- rembg
+- rembg (ONNX Runtime)
 - Hunyuan3D-2
 
 ---
@@ -113,7 +142,7 @@ Florence-2 Part Detection
     ↓
 SAM2.1 Segmentation
     ↓
-Background Removal
+Background Removal (rembg + SAM2.1 mask)
     ↓
 Hunyuan3D-2 Shape Generation
     ↓
@@ -126,6 +155,8 @@ Point Cloud Generation
 DBSCAN Segmentation
     ↓
 PLY Export
+    ↓
+JSON Metadata
 
 ---
 
@@ -163,3 +194,5 @@ Approximately 3–4 minutes for complete pipeline execution depending on GPU cap
 - Production ready
 - Easily extensible
 - Cross-platform
+- Secure authentication
+- Persistent user history

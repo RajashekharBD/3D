@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Automated Single-Image to 3D Asset & Point Cloud Generation System - Presentation</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fira+Code:wght@400;600&display=swap');
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: radial-gradient(circle at 15% 15%, rgba(14, 165, 233, 0.15), transparent 45%),
+                  radial-gradient(circle at 85% 85%, rgba(168, 85, 247, 0.15), transparent 45%),
+                  radial-gradient(circle at 50% 50%, rgba(16, 185, 129, 0.08), transparent 60%),
+                  #030712;
+      color: #f8fafc;
+      margin: 0;
+      padding: 0;
+      overflow-x: hidden;
+    }
+    .slide-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 30px rgba(56, 189, 248, 0.08);
+      border-radius: 1.75rem;
+      min-height: 540px;
+    }
+    .gradient-text {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 45%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .gradient-btn {
+      background: linear-gradient(135deg, #0284c7 0%, #6366f1 50%, #a855f7 100%);
+      box-shadow: 0 4px 20px rgba(99, 102, 241, 0.35);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .gradient-btn:hover {
+      opacity: 0.95;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(168, 85, 247, 0.5);
+    }
+    .slide-hidden {
+      display: none !important;
+    }
+    .code-box {
+      font-family: 'Fira Code', monospace;
+      background-color: rgba(2, 6, 23, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.6);
+    }
+    @media print {
+      header, footer {
+        display: none !important;
+      }
+      body {
+        background: #030712 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      main {
+        max-width: 100% !important;
+        padding: 0 !important;
+      }
+      .slide-card {
+        display: flex !important;
+        page-break-after: always;
+        break-after: page;
+        margin-bottom: 2rem;
+        min-height: 90vh !important;
+        box-shadow: none !important;
+      }
+      .slide-hidden {
+        display: flex !important;
+      }
+    }
+  </style>
+</head>
+<body class="flex flex-col min-h-screen justify-between p-4 md:p-8">
+
+  <!-- Header Navigation -->
+  <header class="max-w-6xl w-full mx-auto flex justify-between items-center py-4 px-6 bg-slate-900/60 rounded-2xl border border-slate-800 backdrop-blur-md mb-6 shadow-xl">
+    <div class="flex items-center space-x-3">
+      <img src="kle_tech_logo.png" alt="KLE Tech Logo" class="h-10 w-10 object-contain rounded-lg bg-white p-0.5 shadow-md border border-slate-200">
+      <div>
+        <h1 class="text-sm font-bold text-white tracking-wide">KLE Technological University</h1>
+        <p class="text-xs text-slate-400">Department of MCA • IV Semester Presentation</p>
+      </div>
+    </div>
+    <div class="text-xs font-semibold px-3.5 py-1.5 bg-indigo-500/10 border border-indigo-500/30 text-indigo-300 rounded-full flex items-center space-x-2">
+      <i class="fa-solid fa-layer-group text-xs text-indigo-400"></i>
+      <span>Slide <span id="current-slide-num">1</span> of 10</span>
+    </div>
+  </header>
+
+  <!-- Slide Display Container -->
+  <main class="max-w-6xl w-full mx-auto flex-grow flex items-center justify-center relative">
+
+    <!-- TITLE SLIDE / COVER -->
+    <div id="slide-0" class="slide-card w-full p-8 md:p-12 flex flex-col justify-between">
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+        <div class="md:col-span-2 space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-medium">
+              <i class="fa-solid fa-graduation-cap"></i>
+              <span>MCA IV Semester Main Project Presentation</span>
+            </div>
+            <img src="kle_tech_logo.png" alt="KLE Tech Logo" class="h-10 w-10 object-contain rounded-xl bg-white p-1 shadow-lg border border-slate-200 md:hidden">
+          </div>
+          <h1 class="text-3xl md:text-5xl font-extrabold tracking-tight gradient-text leading-tight">
+            Automated Single-Image to 3D Asset & Point Cloud Generation System
+          </h1>
+          <p class="text-slate-300 text-sm md:text-base max-w-3xl leading-relaxed">
+            An end-to-end web system converting single 2D RGB photographs into textured 3D polygon meshes (.GLB) and surface point clouds (.PLY) in ~19.6 seconds.
+          </p>
+        </div>
+        <div class="flex flex-col items-center justify-center space-y-3">
+          <img src="kle_tech_logo.png" alt="KLE Tech Logo" class="h-12 w-12 object-contain rounded-xl bg-white p-1 shadow-lg border border-slate-200 hidden md:block">
+          <img src="pdf_extracted_assets/img_page_1_1.png" alt="3D Cover Illustration" class="max-h-56 object-contain rounded-2xl border border-cyan-500/30 shadow-2xl">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-slate-800/80">
+        <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+          <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Submitted By</p>
+          <p class="text-base font-bold text-white">Rajashekhar B Durgad</p>
+          <p class="text-xs text-indigo-400 font-mono">USN: 01FE24MCA027</p>
+        </div>
+        <div class="p-4 rounded-xl bg-slate-900/50 border border-slate-800">
+          <p class="text-xs text-slate-400 uppercase tracking-wider font-semibold mb-1">Under the Guidance of</p>
+          <p class="text-base font-bold text-white">Prof. Akash Hulkund</p>
+          <p class="text-xs text-slate-400">Department of MCA, KLE Tech</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 1: INTRODUCTION -->
+    <div id="slide-1" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">1</span>
+            <span>Introduction</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Overview & Architecture</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-cube"></i>
+              </div>
+              <h3 class="font-bold text-white text-base">Automated 2D to 3D Pipeline</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Transforms raw 2D photographs into textured 3D polygon meshes (.GLB) and surface point clouds (.PLY) without multi-view setups or manual modeling.
+              </p>
+            </div>
+            <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-lg">
+                <i class="fa-solid fa-brain"></i>
+              </div>
+              <h3 class="font-bold text-white text-base">Multi-Stage AI Engine</h3>
+              <p class="text-xs text-slate-300 leading-relaxed">
+                Integrates Meta SAM 2.1 (foreground isolation), Tencent Hunyuan3D-2 (triplane synthesis), and Open3D (Poisson disk surface point sampling).
+              </p>
+            </div>
+          </div>
+          <div class="flex justify-center">
+            <img src="pdf_extracted_assets/img_page_3_1.png" alt="Intro Illustration" class="max-h-64 object-contain rounded-2xl border border-blue-500/30 shadow-xl">
+          </div>
+        </div>
+      </div>
+      <div class="p-4 rounded-xl bg-indigo-950/30 border border-indigo-800/40 text-xs text-indigo-300 flex items-center space-x-3 mt-4">
+        <i class="fa-solid fa-bolt text-indigo-400"></i>
+        <span><strong>Key Highlight:</strong> Complete processing finished in <strong>~19.6 seconds</strong> with a peak GPU memory footprint of <strong>11.4 GB VRAM</strong>.</span>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: PROBLEM STATEMENT -->
+    <div id="slide-2" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center text-sm">2</span>
+            <span>Problem Statement</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Challenges & Bottlenecks</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div class="md:col-span-2 space-y-3">
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start space-x-4">
+              <div class="p-2.5 rounded-lg bg-red-500/10 text-red-400 mt-1">
+                <i class="fa-solid fa-clock text-sm"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-sm">High Manual Overhead in Traditional 3D Modeling</h3>
+                <p class="text-xs text-slate-300 mt-1">Manual CAD software (Blender, Maya) requires specialized artistic skills and hours to days of labor per single 3D asset.</p>
+              </div>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 flex items-start space-x-4">
+              <div class="p-2.5 rounded-lg bg-amber-500/10 text-amber-400 mt-1">
+                <i class="fa-solid fa-camera text-sm"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-white text-sm">Photogrammetry & Text-to-3D Limitations</h3>
+                <p class="text-xs text-slate-300 mt-1">Photogrammetry requires 50+ calibrated camera shots and studio lighting. Text-to-3D generative models lack spatial precision for exact physical objects.</p>
+              </div>
+            </div>
+          </div>
+          <div class="flex justify-center">
+            <img src="pdf_extracted_assets/img_page_4_1.png" alt="Limitations Illustration" class="max-h-64 object-contain rounded-2xl border border-red-500/30 shadow-xl">
+          </div>
+        </div>
+      </div>
+      <div class="p-4 rounded-xl bg-red-950/20 border border-red-900/40 text-xs text-red-300 mt-4">
+        <strong>Goal:</strong> Provide a prompt-free, single-image 3D synthesis web system operating reliably under a <strong>16 GB GPU VRAM ceiling</strong>.
+      </div>
+    </div>
+
+    <!-- SLIDE 3: OBJECTIVES -->
+    <div id="slide-3" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-sm">3</span>
+            <span>Objectives</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">System Goals</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div class="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+              <i class="fa-solid fa-check-circle text-emerald-400 text-base"></i>
+              <span class="text-xs text-slate-200 font-medium">Single RGB Image Ingestion without text prompts</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+              <i class="fa-solid fa-check-circle text-emerald-400 text-base"></i>
+              <span class="text-xs text-slate-200 font-medium">Zero-Shot Background Isolation via SAM 2.1</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+              <i class="fa-solid fa-check-circle text-emerald-400 text-base"></i>
+              <span class="text-xs text-slate-200 font-medium">Rapid Textured .GLB Mesh Synthesis in ~15 seconds</span>
+            </div>
+            <div class="p-3.5 rounded-xl bg-slate-900/60 border border-slate-800 flex items-center space-x-3">
+              <i class="fa-solid fa-check-circle text-emerald-400 text-base"></i>
+              <span class="text-xs text-slate-200 font-medium">10k Point Cloud Extraction with Normal Vectors (.PLY)</span>
+            </div>
+          </div>
+          <div class="flex justify-center">
+            <img src="pdf_extracted_assets/img_page_5_1.png" alt="Objectives Illustration" class="max-h-64 object-contain rounded-2xl border border-emerald-500/30 shadow-xl">
+          </div>
+        </div>
+      </div>
+      <div class="p-4 rounded-xl bg-emerald-950/20 border border-emerald-800/40 text-xs text-emerald-300 mt-4">
+        <strong>Validation:</strong> All 6 functional objectives successfully met and verified in Chapter 6 (Acceptance Testing).
+      </div>
+    </div>
+
+    <!-- SLIDE 4: SCOPE & CONSTRAINTS -->
+    <div id="slide-4" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-6">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-sm">4</span>
+            <span>Scope & Constraints</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Boundaries</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <h3 class="font-bold text-cyan-400 text-sm flex items-center space-x-2">
+              <i class="fa-solid fa-expand"></i>
+              <span>System Scope</span>
+            </h3>
+            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+              <li>Supports JPG, PNG, WEBP, BMP image formats up to 25 MB.</li>
+              <li>Generates downloadable textured .GLB mesh and .PLY point cloud.</li>
+              <li>Targeted at e-commerce 3D catalogs, AR/VR spatial apps, and game development.</li>
+            </ul>
+          </div>
+          <div class="p-5 rounded-2xl bg-slate-900/60 border border-slate-800 space-y-3">
+            <h3 class="font-bold text-amber-400 text-sm flex items-center space-x-2">
+              <i class="fa-solid fa-triangle-exclamation"></i>
+              <span>Operational Constraints</span>
+            </h3>
+            <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+              <li>Optimized for single prominent foreground objects.</li>
+              <li>Executes within a 16 GB VRAM GPU ceiling (NVIDIA T4 workstation).</li>
+              <li>Synthesizes occluded rear textures via triplane diffusion interpolation.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="p-4 rounded-xl bg-slate-900/80 border border-slate-800 text-xs text-slate-400">
+        <strong>Hardware Environment:</strong> NVIDIA T4 GPU (16 GB VRAM), CUDA 12.1, 32 GB System RAM.
+      </div>
+    </div>
+
+    <!-- SLIDE 5: BLOCK DIAGRAM -->
+    <div id="slide-5" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm">5</span>
+            <span>Block Diagram</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">System Architecture</span>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-cyan-500/40 shadow-2xl flex justify-center items-center">
+          <img src="system_architecture_diagram.png" alt="System Architecture Diagram" class="max-h-[380px] w-full object-contain rounded-xl">
+        </div>
+      </div>
+      <p class="text-xs text-slate-300 mt-2">
+        Sequential CUDA execution and explicit GPU cache flushing (<code class="text-cyan-400">torch.cuda.empty_cache()</code>) prevent VRAM OOM crashes.
+      </p>
+    </div>
+
+    <!-- SLIDE 6: REQUIREMENTS -->
+    <div id="slide-6" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center text-sm">6</span>
+            <span>Requirements</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Functional & Non-Functional</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <h3 class="font-bold text-teal-400 text-xs uppercase tracking-wider">6.1 Functional Requirements</h3>
+            <ul class="text-xs text-slate-300 space-y-1.5">
+              <li><strong>FR-01:</strong> Supabase JWT user authentication & session control.</li>
+              <li><strong>FR-02:</strong> Drag-and-drop upload with format check & 25 MB cap.</li>
+              <li><strong>FR-03:</strong> Automated SAM 2.1 background removal & alpha matting.</li>
+              <li><strong>FR-04:</strong> Rapid textured 3D mesh synthesis (.GLB format).</li>
+              <li><strong>FR-05:</strong> Poisson disk point cloud sampling with normals (.PLY).</li>
+              <li><strong>FR-06:</strong> Interactive 60 FPS WebGL canvas with orbit controls.</li>
+            </ul>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <h3 class="font-bold text-indigo-400 text-xs uppercase tracking-wider">6.2 Non-Functional Requirements</h3>
+            <ul class="text-xs text-slate-300 space-y-1.5">
+              <li><strong>Performance:</strong> Total pipeline latency completed in ~19.6s.</li>
+              <li><strong>Memory Ceiling:</strong> Peak memory strictly capped at 11.4 GB VRAM.</li>
+              <li><strong>Usability:</strong> Modern glassmorphism UI with Light/Dark mode.</li>
+              <li><strong>Reliability:</strong> 100% test pass rate across all 8 Master Acceptance tests.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 7: USE-CASE DIAGRAM -->
+    <div id="slide-7" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-pink-500/20 text-pink-400 flex items-center justify-center text-sm">7</span>
+            <span>Use-Case Diagram</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">User & System Interaction</span>
+        </div>
+        <div class="bg-white p-3 rounded-2xl border border-pink-500/40 shadow-2xl flex justify-center items-center">
+          <img src="usecase_diagram_graphic.png" alt="Use-Case Diagram" class="max-h-[380px] w-full object-contain rounded-xl">
+        </div>
+      </div>
+      <div class="grid grid-cols-2 gap-4 text-xs text-slate-300">
+        <div><strong>Actor 1 (User):</strong> Uploads images, tracks status, views 3D canvas, exports GLB/PLY.</div>
+        <div><strong>Actor 2 (Backend):</strong> Validates JWT, executes models sequentially, persists database.</div>
+      </div>
+    </div>
+
+    <!-- SLIDE 8: CONCLUSION & FUTURE SCOPE -->
+    <div id="slide-8" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm">8</span>
+            <span>Conclusion & Future Scope</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Summary & Roadmap</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <h3 class="font-bold text-amber-400 text-xs uppercase tracking-wider">Project Conclusion</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Successfully engineered an automated single-image 3D reconstruction system delivering textured .GLB meshes and .PLY point clouds in <strong>~19.6s</strong> with a peak GPU footprint of <strong>11.4 GB VRAM</strong>.
+            </p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800 space-y-2">
+            <h3 class="font-bold text-cyan-400 text-xs uppercase tracking-wider">Future Scope & Enhancements</h3>
+            <ul class="text-xs text-slate-300 space-y-1">
+              <li>• <strong>PBR Textures:</strong> Metallic, roughness & normal maps.</li>
+              <li>• <strong>WebGPU Splatting:</strong> 3D Gaussian Splatting rendering.</li>
+              <li>• <strong>3D Printing:</strong> Quad-remashing for watertight .STL files.</li>
+              <li>• <strong>WebXR AR/VR:</strong> Mobile AR & Apple Vision Pro passthrough.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="p-3 rounded-xl bg-amber-950/20 border border-amber-800/40 text-xs text-amber-300 text-center">
+        Complete MCA IV Semester Project successfully validated and ready for enterprise deployment.
+      </div>
+    </div>
+
+    <!-- SLIDE 9: REFERENCES -->
+    <div id="slide-9" class="slide-card w-full p-8 md:p-12 slide-hidden flex flex-col justify-between">
+      <div>
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-2xl md:text-3xl font-extrabold text-white flex items-center space-x-3">
+            <span class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm">9</span>
+            <span>References</span>
+          </h2>
+          <span class="text-xs text-slate-400 font-mono">Academic Citations</span>
+        </div>
+        <div class="space-y-2 text-xs text-slate-300">
+          <p>1. <strong>Tencent Hunyuan3D-2 Team. (2025).</strong> <em>Hunyuan3D 2.0: Scaling Diffusion Models for High-Fidelity 3D Asset Generation</em>. arXiv:2501.12211.</p>
+          <p>2. <strong>Kirillov, A., et al. (2023).</strong> “Segment Anything.” <em>IEEE/CVF ICCV</em>, pp. 4015–4026.</p>
+          <p>3. <strong>Ravi, N., et al. (2024).</strong> <em>SAM 2: Segment Anything in Images and Videos</em>. arXiv:2408.00714.</p>
+          <p>4. <strong>Li, J., et al. (2022).</strong> “BLIP: Bootstrapping Language-Image Pre-training.” <em>ICML</em>, 12888–12900.</p>
+          <p>5. <strong>Zhou, Q., et al. (2018).</strong> <em>Open3D: A Modern Library for 3D Data Processing</em>. arXiv:1801.09847.</p>
+          <p>6. <strong>Lorensen, W. E., &amp; Cline, H. E. (1987).</strong> “Marching Cubes: A 3D Surface Construction Algorithm.” <em>ACM SIGGRAPH</em>, 21(4), 163–169.</p>
+          <p>7. <strong>Next.js &amp; React Three Fiber Documentation. (2025).</strong> Vercel &amp; Poimandres.</p>
+        </div>
+      </div>
+      <div class="text-center text-xs text-slate-500 pt-4 border-t border-slate-800">
+        Thank You! • Questions & Answers
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Controls Footer -->
+  <footer class="max-w-6xl w-full mx-auto flex justify-between items-center py-4 px-6 bg-slate-900/60 rounded-2xl border border-slate-800 backdrop-blur-md mt-6">
+    <button id="prev-btn" onclick="prevSlide()" class="px-5 py-2.5 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-semibold transition flex items-center space-x-2 cursor-pointer border border-slate-700">
+      <i class="fa-solid fa-arrow-left"></i>
+      <span>Previous</span>
+    </button>
+    <div class="flex space-x-2" id="dots-container"></div>
+    <button id="next-btn" onclick="nextSlide()" class="px-5 py-2.5 gradient-btn text-white rounded-xl text-xs font-semibold transition flex items-center space-x-2 cursor-pointer">
+      <span>Next</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+  </footer>
+
+  <!-- Slide Navigation JavaScript -->
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 10;
+
+    const dotsContainer = document.getElementById('dots-container');
+    for (let i = 0; i < totalSlides; i++) {
+      const dot = document.createElement('button');
+      dot.className = `w-2.5 h-2.5 rounded-full transition-all cursor-pointer ${i === 0 ? 'bg-indigo-500 w-6' : 'bg-slate-700'}`;
+      dot.onclick = () => goToSlide(i);
+      dotsContainer.appendChild(dot);
+    }
+
+    function updateSlide() {
+      for (let i = 0; i < totalSlides; i++) {
+        const slide = document.getElementById(`slide-${i}`);
+        if (i === currentSlide) {
+          slide.classList.remove('slide-hidden');
+        } else {
+          slide.classList.add('slide-hidden');
+        }
+      }
+      document.getElementById('current-slide-num').innerText = currentSlide + 1;
+
+      // Update dots
+      const dots = dotsContainer.children;
+      for (let i = 0; i < totalSlides; i++) {
+        if (i === currentSlide) {
+          dots[i].className = 'w-6 h-2.5 rounded-full bg-indigo-500 transition-all cursor-pointer';
+        } else {
+          dots[i].className = 'w-2.5 h-2.5 rounded-full bg-slate-700 transition-all cursor-pointer';
+        }
+      }
+
+      // Button states
+      document.getElementById('prev-btn').disabled = currentSlide === 0;
+      document.getElementById('prev-btn').style.opacity = currentSlide === 0 ? '0.5' : '1';
+      document.getElementById('next-btn').disabled = currentSlide === totalSlides - 1;
+      document.getElementById('next-btn').style.opacity = currentSlide === totalSlides - 1 ? '0.5' : '1';
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides - 1) {
+        currentSlide++;
+        updateSlide();
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 0) {
+        currentSlide--;
+        updateSlide();
+      }
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      updateSlide();
+    }
+
+    // Keyboard Arrow Keys
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === 'Space') {
+        nextSlide();
+      } else if (e.key === 'ArrowLeft') {
+        prevSlide();
+      }
+    });
+
+    updateSlide();
+  </script>
+</body>
+</html>

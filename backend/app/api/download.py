@@ -12,6 +12,7 @@ def download_artifact(job_id: str, artifact_key: str, current_user: dict = Depen
     return download_controller.get_artifact(job_id, artifact_key, current_user)
 
 
+
 @router.get("/download/{job_id}")
 def list_artifacts(job_id: str, current_user: dict = Depends(get_current_user)):
     """Lists available artifacts for the given job and their availability status."""

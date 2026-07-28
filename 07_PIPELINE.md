@@ -3,25 +3,21 @@
 
 ## Overview
 
-The AI Processing Pipeline is the core execution engine of the system. It transforms a single RGB image into a textured 3D asset (GLB) and a segmented point cloud (PLY) through a sequence of independent processing stages.
+The AI Processing Pipeline is the core execution engine of the system. It transforms a single RGB image into a textured 3D asset (GLB) and a segmented point cloud (PLY) through a sequence of sequential stages, each unloading VRAM before the next stage loads.
 
-Each stage has:
+The pipeline is triggered as a **background task** during image upload — there is no separate `/pipeline/start` endpoint.
 
-- Defined input
-- Processing logic
-- Output
-- Validation
-- Error handling
-- Retry mechanism
-
-The pipeline is synchronous—each stage must complete successfully before the next begins.
+Each stage:
+- Validates its own output
+- Logs start/end time, duration, status
+- Syncs progress and artifacts to **Supabase** database
 
 ---
 
 # Complete Workflow
 
 ```
-User Upload
+User Upload (POST /api/v1/upload)
       │
       ▼
 Image Validation
@@ -30,13 +26,13 @@ Image Validation
 Image Analysis
       │
       ▼
-CLAHE Enhancement (Optional)
+CLAHE Enhancement (Conditional — based on brightness/contrast threshold)
       │
       ▼
 Florence-2 Caption Generation
       │
       ▼
-GroundingDINO Object Detection
+GroundingDINO Object Detection (multi-pass threshold retry)
       │
       ▼
 Florence-2 Part Detection
@@ -45,28 +41,22 @@ Florence-2 Part Detection
 SAM2.1 Instance Segmentation
       │
       ▼
-Background Removal
+Background Removal (rembg + ONNX)
       │
       ▼
-Hunyuan3D-2 Shape Generation
+Hunyuan3D-2 Shape Generation (progressive retry: GPU / lower-res / CPU)
       │
       ▼
-Hunyuan3D-2 Texture Generation
+Hunyuan3D-2 Texture Generation (progressive retry: GPU / lower-res / CPU)
       │
       ▼
-GLB Validation
+Open3D Mesh Validation
       │
       ▼
-Open3D Mesh Processing
+Point Cloud Generation (Poisson Disk Sampling)
       │
       ▼
-Point Cloud Generation
-      │
-      ▼
-Surface Normal Estimation
-      │
-      ▼
-DBSCAN Segmentation
+DBSCAN Point Cloud Segmentation
       │
       ▼
 Export Results
@@ -74,654 +64,175 @@ Export Results
 
 ---
 
-# Stage 1 — Image Upload
+# Status Values
 
-## Input
+Status (from `result.json` and `GET /pipeline/status/{job_id}`):
 
-- JPG
-- JPEG
-- PNG
-- WEBP
-- BMP
-
-## Validation
-
-Check:
-
-- File exists
-- Valid extension
-- Readable image
-- RGB conversion
-
-## Output
-
-```
-RGB Image
-```
+- `processing` — Job initialized, pipeline running
+- `completed` — All stages finished
+- `failed` — A stage raised an unrecoverable error
+- `not_found` — Job directory does not exist
 
 ---
 
-# Stage 2 — Image Analysis
+# Stage-by-Stage
 
-Calculate:
+## Stage 1 — Upload & Validation
 
-- Width
-- Height
-- Channels
-- Mean Brightness
-- Standard Deviation
+- **Input**: JPG, JPEG, PNG, WEBP, BMP (max 25 MB)
+- **Actions**: File type check, RGB conversion, image readability
+- **Output**: `outputs/<job_id>/original.png`
+- **DB Sync**: Creates `jobs` + `artifacts` rows in Supabase
 
-Decision:
+## Stage 2 — Image Analysis
 
-```
-Brightness < Threshold ?
+- Calculates: width, height, mean brightness, standard deviation
+- Decision: brightness < threshold → CLAHE applied
 
-YES
+## Stage 3 — CLAHE Enhancement
 
-↓
+- Library: OpenCV
+- Converts RGB → LAB → CLAHE → RGB
+- Output: `outputs/<job_id>/enhanced.png`
 
-Apply CLAHE
+## Stage 4 — Caption Generation
 
-NO
+- Model: Florence-2
+- Output: raw caption → transformed to dot-separated prompt (e.g. `black . ceramic . mug`)
+- Artifacts: `caption.txt`, `grounding_prompt.txt`
 
-↓
+## Stage 5 — Object Detection (GroundingDINO)
 
-Continue
-```
+- Multi-pass threshold strategy (not fixed retry count):
+  - Pass 1: threshold 0.20
+  - Pass 2: threshold 0.20 (CLAHE image fallback)
+  - Pass 3: threshold 0.15
+  - Pass 4: threshold 0.10
+- Output: bounding box, confidence score, label
+- Artifact: `detection.png` (visual overlay)
 
----
+## Stage 6 — Part Detection
 
-# Stage 3 — CLAHE Enhancement
+- Model: Florence-2
+- Candidate parts: body, handle, base, wheels, lid, seat, backrest, legs
+- Output: part bounding boxes
+- Artifact: `part_detection.png`
 
-Library
+## Stage 7 — Segmentation
 
-OpenCV
+- Model: SAM2.1
+- Input: image + part boxes
+- Output: binary mask (highest IoU selected)
+- Artifacts: `mask.png`, `segmentation.png` (mask overlay)
 
-Processing
+## Stage 8 — Background Removal
 
-RGB
+- Tool: rembg (ONNX Runtime)
+- Output: RGBA PNG (`rgba.png`)
+- Validation: alpha channel must exist
 
-↓
+## Stage 9 — Shape Generation
 
-LAB Color Space
+- Model: Hunyuan3D-2
+- Progressive retry:
+  1. GPU with full config
+  2. GPU with lower octree (96)
+  3. GPU with minimum steps + low octree
+  4. CPU fallback
+- Output: `outputs/<job_id>/model.glb`
+- Validation: vertices > 0, faces > 0
 
-↓
+## Stage 10 — Texture Generation
 
-CLAHE
+- Model: Hunyuan3D-2
+- Progressive retry:
+  1. GPU at configured resolution
+  2. GPU at 128px
+  3. CPU at 128px
+- Output: textured GLB (overwrites `outputs/<job_id>/model.glb`)
 
-↓
+## Stage 11 — Mesh Validation
 
-RGB
+- Library: Open3D
+- Checks: mesh loads, normals computed, no missing geometry
 
-Output
+## Stage 12 — Point Cloud Generation
 
-Enhanced Image
+- Algorithm: Poisson Disk Sampling
+- Target: 100,000 points
+- Output: `outputs/pointcloud/<job_id>_pointcloud.ply` + copy in job dir
 
----
+## Stage 13 — DBSCAN Segmentation
 
-# Stage 4 — Caption Generation
-
-Model
-
-Florence-2
-
-Input
-
-Enhanced Image
-
-Output
-
-```
-"a black ceramic mug"
-```
-
-Validation
-
-Caption must not be empty.
-
----
-
-# Stage 5 — Prompt Generation
-
-Convert
-
-```
-a black ceramic mug
-```
-
-into
-
-```
-black . ceramic . mug
-```
-
-Output
-
-GroundingDINO Prompt
+- Parameters: eps = 0.05, min_points = 50
+- Output: `outputs/pointcloud/<job_id>_segmented_pointcloud.ply`
+- Metadata: cluster count, outlier count
 
 ---
 
-# Stage 6 — Object Detection
-
-Model
-
-GroundingDINO
-
-Input
-
-Image
-
-Prompt
-
-Output
-
-Bounding Boxes
-
-Confidence
-
-Labels
-
----
-
-Detection Strategy
-
-```
-Pass 1
-
-Original Image
-
-Threshold 0.20
-
-↓
-
-If Failed
-
-↓
-
-Pass 2
-
-CLAHE Image
-
-↓
-
-If Failed
-
-↓
-
-Threshold 0.15
-
-↓
-
-If Failed
-
-↓
-
-Threshold 0.10
-
-↓
-
-If Failed
-
-↓
-
-Pipeline Stops
-```
-
----
-
-# Stage 7 — Part Detection
-
-Model
-
-Florence-2
-
-Input
-
-Detected Object
-
-Output
-
-Example
-
-```
-Body
-
-Handle
-```
-
-Output
-
-Part Bounding Boxes
-
----
-
-# Stage 8 — Segmentation
-
-Model
-
-SAM2.1
-
-Input
-
-Image
-
-Part Boxes
-
-Output
-
-Binary Masks
-
-Mask Scores
-
-IoU Scores
-
-Decision
-
-Highest IoU
-
-↓
-
-Final Mask
-
----
-
-# Stage 9 — Background Removal
-
-Tool
-
-rembg
-
-Backend
-
-ONNX Runtime
-
-Input
-
-Mask
-
-Image
-
-Output
-
-RGBA Image
-
-Transparent Background
-
-Validation
-
-Alpha channel must exist.
-
----
-
-# Stage 10 — Shape Generation
-
-Model
-
-Hunyuan3D-2
-
-Input
-
-RGBA Image
-
-Output
-
-Watertight Mesh
-
-Validation
-
-Mesh contains:
-
-- Vertices
-- Faces
-
----
-
-# Stage 11 — Texture Generation
-
-Model
-
-Hunyuan3D-2
-
-Input
-
-Mesh
-
-RGBA
-
-Output
-
-Textured GLB
-
-Validation
-
-Texture exists
-
-GLB readable
-
----
-
-# Stage 12 — Mesh Validation
-
-Library
-
-Open3D
-
-Checks
-
-Mesh loads
-
-Normals computed
-
-No missing geometry
-
-Output
-
-Validated Mesh
-
----
-
-# Stage 13 — Point Cloud Generation
-
-Algorithm
-
-Poisson Disk Sampling
-
-Input
-
-GLB
-
-Output
-
-PLY
-
-Target
-
-100000 Points
-
-Validation
-
-Point Count
-
-Normals
-
----
-
-# Stage 14 — Surface Normals
-
-Compute
-
-Normals
-
-↓
-
-Orient Normals
-
-↓
-
-Save
-
----
-
-# Stage 15 — Point Cloud Segmentation
-
-Algorithm
-
-DBSCAN
-
-Input
-
-PLY
-
-Parameters
-
-```
-eps = 0.05
-
-min_points = 50
-```
-
-Output
-
-Colored Clusters
-
----
-
-# Stage 16 — Export
-
-Generate
+# Output Structure
 
 ```
 outputs/
-
-images/
-
-detection.png
-
-segmentation.png
-
-rgba.png
-
-meshes/
-
-model.glb
-
-pointcloud/
-
-pointcloud.ply
-
-segmented_pointcloud.ply
-
-metadata/
-
-result.json
+  <job_id>/
+    original.png
+    enhanced.png         (if CLAHE applied)
+    detection.png
+    segmentation.png
+    mask_overlay.png
+    part_detection.png
+    rgba.png
+    mask.png
+    model.glb
+    pointcloud.ply
+    segmented_pointcloud.ply
+    caption.txt
+    grounding_prompt.txt
+    result.json           (master metadata + artifacts map)
+  meshes/
+    <job_id>_model.glb
+  pointcloud/
+    <job_id>_pointcloud.ply
+    <job_id>_segmented_pointcloud.ply
 ```
 
 ---
 
-# Validation Pipeline
+# Database Sync
 
-Each stage validates its own output before continuing.
+Each stage syncs to Supabase:
 
-```
-Stage Success ?
+- `jobs` table: status, duration, model/pointcloud generated flags
+- `artifacts` table: artifact_type, storage_path, file_size, mime_type
 
-YES
-
-↓
-
-Next Stage
-
-NO
-
-↓
-
-Retry
-
-↓
-
-Still Failed
-
-↓
-
-Stop Pipeline
-```
-
----
-
-# Retry Logic
-
-## Detection
-
-Retry Count
-
-4
-
----
-
-## Segmentation
-
-Retry Count
-
-1
-
----
-
-## Background Removal
-
-Retry Count
-
-1
-
----
-
-## Hunyuan3D
-
-Retry Count
-
-1
-
----
-
-## Open3D
-
-Retry Count
-
-1
+Performed inside `artifacts_manager.py` methods (`add_file_artifact`, `add_text_artifact`, `update_status`).
 
 ---
 
 # GPU Memory Strategy
 
-```
-Load Florence-2
-
-↓
-
-Inference
-
-↓
-
-Unload
-
-↓
-
-Clear CUDA Cache
-
-↓
-
-Load GroundingDINO
-
-↓
-
-Inference
-
-↓
-
-Unload
-
-↓
-
-Clear CUDA Cache
-
-↓
-
-Load SAM2.1
-
-↓
-
-Inference
-
-↓
-
-Unload
-
-↓
-
-Clear CUDA Cache
-
-↓
-
-Load Hunyuan3D
-
-↓
-
-Inference
-
-↓
-
-Unload
-
-↓
-
-Clear CUDA Cache
-```
-
-This prevents GPU memory exhaustion.
-
----
-
-# Logging
-
-Every stage logs:
-
-- Start Time
-- End Time
-- Duration
-- Status
-- Errors
-- Output File
-
-Example
+Models are loaded one-at-a-time:
 
 ```
-Stage: Detection
-
-Status: Success
-
-Time: 4.1 Seconds
-
-Confidence: 0.34
+Load Florence-2 → Inference → Unload → Clear CUDA Cache
+Load GroundingDINO → Inference → Unload → Clear CUDA Cache
+Load SAM2.1 → Inference → Unload → Clear CUDA Cache
+Load Hunyuan3D-2 Shape → Inference → Unload → Clear CUDA Cache
+Load Hunyuan3D-2 Texture → Inference → Unload → Clear CUDA Cache
 ```
 
----
-
-# Final Outputs
-
-Images
-
-- Detection Image
-- Segmentation Image
-- RGBA Image
-
-3D
-
-- GLB Mesh
-
-Point Cloud
-
-- Raw PLY
-- Segmented PLY
-
-Metadata
-
-- JSON Report
+Prevents GPU OOM on consumer cards (4–8 GB VRAM).
 
 ---
 
 # Pipeline Success Criteria
 
-The execution is successful only if all stages complete and the following files are produced:
+The execution is successful if all stages complete and produce:
 
-✓ detection.png
-
-✓ segmentation.png
-
-✓ rgba.png
-
-✓ model.glb
-
-✓ pointcloud.ply
-
-✓ segmented_pointcloud.ply
-
-✓ result.json
+- `detection.png`
+- `segmentation.png`
+- `rgba.png`
+- `model.glb`
+- `pointcloud.ply`
+- `segmented_pointcloud.ply`
+- `result.json`

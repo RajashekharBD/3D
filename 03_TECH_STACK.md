@@ -29,7 +29,7 @@ Output Generation
 
 ## Framework
 
-Next.js 15
+Next.js 15.5
 
 Purpose
 
@@ -40,13 +40,13 @@ Purpose
 
 Version
 
-15+
+15.5
 
 ---
 
 ## UI Library
 
-React 19
+React 19.1
 
 Purpose
 
@@ -58,7 +58,7 @@ Purpose
 
 ## Styling
 
-Tailwind CSS
+Tailwind CSS 4
 
 Purpose
 
@@ -70,7 +70,7 @@ Purpose
 
 ## 3D Rendering
 
-Three.js
+Three.js 0.185
 
 Purpose
 
@@ -81,7 +81,7 @@ Purpose
 
 ---
 
-## React Three Fiber
+## React Three Fiber 9.6
 
 Purpose
 
@@ -90,7 +90,7 @@ Purpose
 
 ---
 
-## Drei
+## Drei 10.7
 
 Purpose
 
@@ -101,11 +101,21 @@ Purpose
 
 ---
 
+## UI Icons
+
+lucide-react 1.24
+
+Purpose
+
+- Icon components for UI
+
+---
+
 # Backend
 
 ## Framework
 
-FastAPI
+FastAPI 0.110+
 
 Purpose
 
@@ -118,7 +128,7 @@ Purpose
 
 ## ASGI Server
 
-Uvicorn
+Uvicorn 0.28+
 
 Purpose
 
@@ -142,6 +152,24 @@ Purpose
 - Computer Vision
 - Image Processing
 - 3D Processing
+
+---
+
+# Authentication & Database
+
+## Supabase
+
+Purpose
+
+- User authentication (Auth)
+- PostgreSQL database
+- Row Level Security
+- Session management
+
+Backend Package
+
+supabase 2.4+ (Python)
+@supabase/supabase-js 2.43+ (Frontend)
 
 ---
 
@@ -210,7 +238,7 @@ ONNX Runtime
 
 Output
 
-RGBA Image
+RGBA Image (refined with SAM2.1 mask)
 
 ---
 
@@ -262,7 +290,7 @@ Models Used
 
 # Image Processing
 
-## OpenCV
+## OpenCV 4.9+
 
 Purpose
 
@@ -273,7 +301,7 @@ Purpose
 
 ---
 
-## Pillow
+## Pillow 10.2+
 
 Purpose
 
@@ -283,7 +311,7 @@ Purpose
 
 ---
 
-## NumPy
+## NumPy 1.26+
 
 Purpose
 
@@ -295,7 +323,7 @@ Purpose
 
 # 3D Processing
 
-## Open3D
+## Open3D 0.18+
 
 Purpose
 
@@ -303,17 +331,6 @@ Purpose
 - Point Cloud Generation
 - Point Cloud Visualization
 - Normal Estimation
-
----
-
-## Trimesh
-
-Purpose
-
-- Mesh Operations
-- GLB Loading
-- Mesh Export
-- Geometry Processing
 
 ---
 
@@ -383,6 +400,50 @@ JSON
 
 ---
 
+# Configuration & Utilities
+
+## pydantic-settings 2.2+
+
+Purpose
+
+- Environment variable loading
+- Settings management
+
+---
+
+## PyYAML 6.0+
+
+Purpose
+
+- YAML config file loading
+
+---
+
+## python-multipart 0.0.9+
+
+Purpose
+
+- Multipart file upload parsing
+
+---
+
+## httpx
+
+Purpose
+
+- Async HTTP client
+- Supabase JWT verification
+
+---
+
+## python-jose 3.3+
+
+Purpose
+
+- JWT token handling
+
+---
+
 # Development Tools
 
 ## Visual Studio Code
@@ -406,26 +467,6 @@ Version Control
 Purpose
 
 Source Code Repository
-
----
-
-## Postman
-
-Purpose
-
-API Testing
-
----
-
-## Google Colab
-
-Purpose
-
-Model Testing
-
-GPU Training
-
-Prototype Development
 
 ---
 
@@ -483,51 +524,28 @@ VRAM
 
 ---
 
-# Project Folder Overview
-
-Frontend
-
-Next.js
-
-↓
-
-Backend
-
-FastAPI
-
-↓
-
-AI Models
-
-↓
-
-3D Processing
-
-↓
-
-Output Files
-
----
-
 # Why These Technologies?
 
-| Technology    | Purpose            | Reason                          |
-| ------------- | ------------------ | ------------------------------- |
-| Next.js       | Frontend           | Modern production framework     |
-| React         | UI                 | Component-based architecture    |
-| Tailwind CSS  | Styling            | Fast responsive UI              |
-| FastAPI       | Backend            | High-performance REST API       |
-| PyTorch       | AI                 | Industry-standard deep learning |
-| Florence-2    | Captioning         | Automatic prompt generation     |
-| GroundingDINO | Detection          | Zero-shot object detection      |
-| SAM2.1        | Segmentation       | Accurate object masks           |
-| rembg         | Background Removal | Clean RGBA object extraction    |
-| Hunyuan3D-2   | 3D Generation      | High-quality textured mesh      |
-| OpenCV        | Image Processing   | CLAHE and image enhancement     |
-| Open3D        | 3D Processing      | Mesh and point cloud handling   |
-| Trimesh       | Mesh Utilities     | Mesh loading and export         |
-| Three.js      | 3D Viewer          | Browser-based visualization     |
-| DBSCAN        | Segmentation       | Point cloud clustering          |
+| Technology               | Purpose                    | Reason                            |
+| ------------------------ | -------------------------- | --------------------------------- |
+| Next.js                  | Frontend                   | Modern production framework        |
+| React                    | UI                         | Component-based architecture       |
+| Tailwind CSS             | Styling                    | Fast responsive UI                 |
+| FastAPI                  | Backend                    | High-performance REST API          |
+| PyTorch                  | AI                         | Industry-standard deep learning    |
+| Florence-2               | Captioning                 | Automatic prompt generation        |
+| GroundingDINO            | Detection                  | Zero-shot object detection         |
+| SAM2.1                   | Segmentation               | Accurate object masks              |
+| rembg                    | Background Removal         | Clean RGBA object extraction       |
+| Hunyuan3D-2              | 3D Generation              | High-quality textured mesh         |
+| OpenCV                   | Image Processing           | CLAHE and image enhancement        |
+| Open3D                   | 3D Processing              | Mesh and point cloud handling      |
+| Three.js                 | 3D Viewer                  | Browser-based visualization        |
+| React Three Fiber        | 3D React Wrapper           | Declarative 3D scenes in React     |
+| Drei                     | 3D Helpers                 | Orbit controls, environment        |
+| Supabase                 | Auth & Database            | Authentication and PostgreSQL      |
+| DBSCAN                   | Segmentation               | Point cloud clustering             |
+| lucide-react             | Icons                      | Consistent UI icon set             |
 
 ---
 
@@ -548,7 +566,7 @@ GroundingDINO
 SAM2.1
    │
    ▼
-rembg
+rembg (with SAM2.1 mask)
    │
    ▼
 Hunyuan3D-2
@@ -560,4 +578,4 @@ Open3D
 DBSCAN
    │
    ▼
-GLB + PLY Output
+GLB + PLY + JSON Output

@@ -451,6 +451,14 @@ Generate a textured 3D model from one RGBA image.
 
 ---
 
+## Implementation Files
+
+loader.py — model loading with cpu_offload, sequential_cpu_offload, attention_slicing, vae_slicing, vae_tiling, and lazy_loading
+
+generator.py — shape generation and texture generation stages
+
+---
+
 ## Stage 1
 
 Shape Generation
@@ -493,8 +501,6 @@ GLB
 
 GLB
 
-OBJ (optional)
-
 Texture Maps
 
 ---
@@ -502,10 +508,6 @@ Texture Maps
 ## Supported Texture Resolution
 
 512
-
-1024
-
-2048
 
 ---
 
@@ -539,7 +541,67 @@ Recommended
 
 Minimum
 
-4 GB (may require CPU offloading or reduced settings)
+4 GB (with cpu_offload, sequential_cpu_offload, attention_slicing, vae_slicing, vae_tiling, lazy_loading enabled)
+
+---
+
+## Configuration
+
+shape_steps
+
+30
+
+guidance_scale
+
+5.5
+
+texture_steps
+
+10
+
+texture_resolution
+
+512
+
+export_format
+
+glb
+
+octree_resolution
+
+256
+
+use_fp16
+
+true
+
+cpu_offload
+
+true
+
+sequential_cpu_offload
+
+true
+
+attention_slicing
+
+true
+
+vae_slicing
+
+true
+
+vae_tiling
+
+true
+
+lazy_loading
+
+true
+
+retry_on_oom
+
+true
 
 ---
 
@@ -580,10 +642,6 @@ Poisson Disk Sampling
 ↓
 
 Surface Normals
-
-↓
-
-Viewer
 
 ---
 
@@ -673,7 +731,7 @@ Hunyuan3D-2
 
 Unload
 
-This sequential loading minimizes peak VRAM usage.
+This sequential loading minimizes peak VRAM usage. Hunyuan3D-2 additionally offloads to CPU between sub-stages.
 
 ---
 
