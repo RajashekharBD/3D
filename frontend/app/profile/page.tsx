@@ -51,8 +51,8 @@ export default function ProfilePage() {
     <ProtectedRoute>
       <div className="flex-grow p-8 max-w-6xl mx-auto w-full space-y-8">
         <div>
-          <h2 className="text-3xl font-extrabold text-slate-100 mb-2">My Profile</h2>
-          <p className="text-slate-400 text-sm">
+          <h2 className="text-3xl font-extrabold text-slate-900 dark:text-slate-100 mb-2">My Profile</h2>
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             View your account information and reconstruction stats.
           </p>
         </div>
@@ -84,7 +84,7 @@ export default function ProfilePage() {
             </div>
           </div>
         ) : (
-          <div className="p-8 text-center bg-slate-900/20 border border-slate-800 rounded-2xl text-slate-400">
+          <div className="p-8 text-center bg-white/80 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-2xl text-slate-600 dark:text-slate-400 shadow-sm">
             Failed to load profile. Please refresh the page.
           </div>
         )}

@@ -10,20 +10,20 @@ export default function Home() {
 
       {/* Hero Section */}
       <div className="relative z-10 max-w-3xl mx-auto mb-16">
-        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-900/80 border border-slate-800 text-xs text-blue-400 font-medium mb-6">
+        <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-slate-200/80 dark:bg-slate-900/80 border border-slate-300 dark:border-slate-800 text-xs text-blue-600 dark:text-blue-400 font-medium mb-6">
           <Sparkles size={12} className="animate-spin-slow" />
           <span>Next-Gen Single-Image 3D Reconstruction</span>
         </div>
         
-        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-slate-900 dark:text-white mb-6 leading-tight">
           Turn Any Image into a{" "}
-          <span className="bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-500 bg-clip-text text-transparent">
+          <span className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-500 bg-clip-text text-transparent">
             3D Asset
           </span>
         </h1>
         
-        <p className="text-base md:text-lg text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
-          Generate watertight, fully textured 3D meshes and clustered point clouds in under 4 minutes. Powered by GroundingDINO, SAM 2.1, and Hunyuan3D-2.
+        <p className="text-base md:text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto mb-10 leading-relaxed">
+          Generate watertight, fully textured 3D meshes and clustered point clouds in under 4 minutes. Powered by Florence-2, SAM 2.1, Hunyuan3D-2, and Open3D.
         </p>
 
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
@@ -31,7 +31,7 @@ export default function Home() {
             <span>Start Reconstructing</span>
             <ArrowRight size={16} />
           </Link>
-          <Link href="/history" className="px-8 py-4 bg-slate-900/60 hover:bg-slate-900 text-slate-300 hover:text-white font-medium rounded-xl border border-slate-800 hover:border-slate-700 transition-all backdrop-blur-sm">
+          <Link href="/history" className="px-8 py-4 bg-white/80 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white font-medium rounded-xl border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 transition-all backdrop-blur-sm shadow-sm">
             View History
           </Link>
         </div>
@@ -40,32 +40,32 @@ export default function Home() {
       {/* Features Grid */}
       <div className="relative z-10 grid grid-cols-1 md:grid-cols-3 gap-6 w-full text-left mt-8">
         <div className="p-6 glass-card rounded-2xl">
-          <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 text-blue-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
+          <div className="w-12 h-12 bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-blue-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
             <Layers size={20} />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">1. Image Optimization</h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Drag and drop your image. The system optimizes the visual qualities automatically using OpenCV CLAHE enhancement.
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">1. Image Optimization</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            Drag and drop your image. The system validates and prepares the image for segmentation automatically.
           </p>
         </div>
 
         <div className="p-6 glass-card rounded-2xl">
-          <div className="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
+          <div className="w-12 h-12 bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
             <Cpu size={20} />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">2. Multi-Model Pipeline</h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">2. Multi-Model Pipeline</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
             Florence-2, GroundingDINO, and SAM 2.1 run sequentially on the backend to segment foreground objects with high precision.
           </p>
         </div>
 
         <div className="p-6 glass-card rounded-2xl">
-          <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 text-purple-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
+          <div className="w-12 h-12 bg-purple-500/10 border border-purple-500/20 text-purple-600 dark:text-purple-400 flex items-center justify-center rounded-xl mb-6 shadow-inner">
             <Sparkles size={20} />
           </div>
-          <h3 className="text-lg font-bold text-white mb-2">3. Textured 3D Export</h3>
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Hunyuan3D-2 generates watertight meshes. Render GLB models, query DBScan point cloud clusters, and download files directly.
+          <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">3. Textured 3D Export</h3>
+          <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+            Hunyuan3D-2 generates watertight meshes. Render GLB models, extract PLY point clouds, and download files directly.
           </p>
         </div>
       </div>

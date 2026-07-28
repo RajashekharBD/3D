@@ -118,15 +118,15 @@ export default function UploadPage() {
     <ProtectedRoute>
       <div className="relative flex flex-col items-center justify-center py-20 px-6 max-w-xl mx-auto flex-grow w-full z-10">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold mb-2 tracking-tight text-white bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-extrabold mb-2 tracking-tight text-slate-900 dark:text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 dark:from-blue-400 dark:via-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
             Upload Image
           </h1>
-          <p className="text-sm text-slate-400">Reconstruct single RGB images into textured 3D models and point clouds.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Reconstruct single RGB images into textured 3D models and point clouds.</p>
         </div>
 
         {error && (
-          <div className="w-full mb-6 p-4 bg-red-950/20 border border-red-900/40 text-red-300 rounded-xl text-sm flex items-start space-x-3 backdrop-blur-sm">
-            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-400 mt-0.5" />
+          <div className="w-full mb-6 p-4 bg-red-100 dark:bg-red-950/20 border border-red-200 dark:border-red-900/40 text-red-600 dark:text-red-300 rounded-xl text-sm flex items-start space-x-3 backdrop-blur-sm shadow-sm">
+            <AlertCircle className="w-5 h-5 flex-shrink-0 text-red-500 dark:text-red-400 mt-0.5" />
             <span className="leading-relaxed">{error}</span>
           </div>
         )}
@@ -140,27 +140,28 @@ export default function UploadPage() {
             className={`w-full aspect-video border-2 border-dashed rounded-2xl flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-all duration-300 relative group overflow-hidden ${
               dragActive 
                 ? 'border-blue-500 bg-blue-500/10 shadow-lg shadow-blue-500/5' 
-                : 'border-slate-800 bg-slate-900/30 hover:border-slate-700 hover:bg-slate-900/50'
+                : 'border-slate-300 dark:border-slate-800 bg-white/80 dark:bg-slate-900/30 hover:border-blue-400 dark:hover:border-slate-700 hover:bg-white dark:hover:bg-slate-900/50 shadow-md'
             }`}
           >
             <input 
               type="file" 
               id="file-upload" 
               className="hidden" 
+              autoComplete="off"
               accept="image/jpeg,image/jpg,image/png,image/webp,image/bmp"
               onChange={handleFileChange}
             />
             <label htmlFor="file-upload" className="cursor-pointer w-full h-full flex flex-col items-center justify-center">
-              <div className="w-14 h-14 bg-slate-950/80 border border-slate-800 flex items-center justify-center rounded-2xl mb-4 text-slate-400 group-hover:text-blue-400 group-hover:border-blue-500/30 transition-all shadow-inner">
+              <div className="w-14 h-14 bg-indigo-50 dark:bg-slate-950/80 border border-indigo-100 dark:border-slate-800 flex items-center justify-center rounded-2xl mb-4 text-indigo-600 dark:text-slate-400 group-hover:text-blue-600 dark:group-hover:text-blue-400 group-hover:border-blue-300 dark:group-hover:border-blue-500/30 transition-all shadow-inner">
                 <Upload size={22} className="group-hover:-translate-y-0.5 transition-transform" />
               </div>
-              <span className="text-sm font-semibold text-slate-200 mb-1 group-hover:text-white transition-colors">
+              <span className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-1 group-hover:text-blue-600 dark:group-hover:text-white transition-colors">
                 Drag & drop your file here
               </span>
-              <span className="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
+              <span className="text-xs text-slate-500 dark:text-slate-400 group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                 or click to browse files
               </span>
-              <span className="text-[10px] text-slate-500 mt-4">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 mt-4">
                 Supported formats: {ALLOWED_EXTENSIONS.join(', ').toUpperCase()} (Max {MAX_SIZE_MB}MB)
               </span>
             </label>
@@ -170,7 +171,7 @@ export default function UploadPage() {
             <div className="w-full glass-card rounded-2xl p-5 flex flex-col items-center relative overflow-hidden shadow-xl">
               <button 
                 onClick={handleClear}
-                className="absolute top-4 right-4 bg-slate-950/85 border border-slate-850 hover:bg-slate-900 hover:border-slate-700 text-slate-400 hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full transition-all z-10 shadow-lg"
+                className="absolute top-4 right-4 bg-white/90 dark:bg-slate-950/85 border border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-900 text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 w-8 h-8 flex items-center justify-center rounded-full transition-all z-10 shadow-lg"
                 title="Remove image"
               >
                 <X size={15} />
@@ -180,14 +181,14 @@ export default function UploadPage() {
               <img 
                 src={previewUrl} 
                 alt="Selected Preview" 
-                className="max-h-64 object-contain rounded-xl shadow-lg border border-slate-850 bg-slate-950/60" 
+                className="max-h-64 object-contain rounded-xl shadow-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-950/60" 
               />
               
               <div className="mt-4 text-center w-full px-4">
-                <p className="text-sm font-semibold text-slate-200 truncate max-w-xs mx-auto">{selectedFile?.name}</p>
-                <div className="inline-flex items-center space-x-1.5 mt-1 bg-slate-950/50 border border-slate-900 px-2.5 py-0.5 rounded-full">
-                  <ImageIcon size={10} className="text-slate-400" />
-                  <span className="text-[11px] font-medium text-slate-400">
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate max-w-xs mx-auto">{selectedFile?.name}</p>
+                <div className="inline-flex items-center space-x-1.5 mt-1 bg-slate-100 dark:bg-slate-950/50 border border-slate-200 dark:border-slate-900 px-2.5 py-0.5 rounded-full">
+                  <ImageIcon size={10} className="text-slate-500 dark:text-slate-400" />
+                  <span className="text-[11px] font-medium text-slate-600 dark:text-slate-400">
                     {selectedFile ? (selectedFile.size / (1024 * 1024)).toFixed(2) : 0} MB
                   </span>
                 </div>

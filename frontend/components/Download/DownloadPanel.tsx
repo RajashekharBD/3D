@@ -172,22 +172,22 @@ export default function DownloadPanel({ jobId }: DownloadPanelProps) {
                   key={card.key}
                   onClick={() => handleDownload(card.key)}
                   disabled={loadingKey === card.key}
-                  className="w-full flex items-center justify-between p-3.5 bg-slate-950 hover:bg-slate-900 rounded-xl border border-slate-900 hover:border-slate-800 transition-all group cursor-pointer disabled:opacity-60"
+                  className="w-full flex items-center justify-between p-3.5 bg-white dark:bg-slate-950 hover:bg-slate-50 dark:hover:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-900 hover:border-slate-300 dark:hover:border-slate-800 transition-all group cursor-pointer disabled:opacity-60 shadow-xs"
                 >
                   <div className="flex items-center space-x-3">
-                    <div className="w-9 h-9 rounded-lg bg-slate-900 group-hover:bg-slate-800 border border-slate-800 flex items-center justify-center text-slate-400 group-hover:text-blue-400 transition-colors">
+                    <div className="w-9 h-9 rounded-lg bg-slate-100 dark:bg-slate-900 group-hover:bg-indigo-50 dark:group-hover:bg-slate-800 border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-400 group-hover:text-indigo-600 dark:group-hover:text-blue-400 transition-colors">
                       {card.icon}
                     </div>
                     <div className="text-left">
-                      <p className="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">
+                      <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-white transition-colors">
                         {card.label}
                       </p>
                       <p className="text-[10px] text-slate-500">{card.description}</p>
                     </div>
                   </div>
-                  <div className="flex-shrink-0 text-slate-600 group-hover:text-blue-400 transition-colors">
+                  <div className="flex-shrink-0 text-slate-400 dark:text-slate-600 group-hover:text-indigo-600 dark:group-hover:text-blue-400 transition-colors">
                     {loadingKey === card.key ? (
-                      <CheckCircle2 size={16} className="text-emerald-400" />
+                      <CheckCircle2 size={16} className="text-emerald-500 dark:text-emerald-400" />
                     ) : (
                       <Download size={16} />
                     )}

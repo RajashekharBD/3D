@@ -31,9 +31,13 @@ export default function ResultsPage() {
     const fetchResults = async () => {
       try {
         setLoading(true);
-        const response = await fetch(resultUrl);
+        const response = await fetch(resultUrl, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
         if (!response.ok) {
-          throw new Error('Failed to load reconstruction result metadata.');
+          throw new Error(`Failed to load reconstruction result metadata (Status: ${response.status}).`);
         }
         const data = await response.json();
         setResultData(data);
@@ -47,7 +51,7 @@ export default function ResultsPage() {
     };
 
     fetchResults();
-  }, [jobId, resultUrl, session]);
+  }, [jobId, resultUrl, session, token]);
 
   if (loading) {
     return (
@@ -78,19 +82,19 @@ export default function ResultsPage() {
     <ProtectedRoute>
       <div className="relative flex flex-col py-12 px-6 md:px-12 max-w-7xl mx-auto w-full flex-grow z-10">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-900/60 pb-6 mb-8 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-slate-200 dark:border-slate-900/60 pb-6 mb-8 gap-4">
           <div>
-            <div className="inline-flex items-center space-x-1.5 text-xs text-green-400 bg-green-500/10 px-2.5 py-0.5 rounded-full mb-2 font-medium border border-green-500/10">
+            <div className="inline-flex items-center space-x-1.5 text-xs text-emerald-700 dark:text-green-400 bg-emerald-50 dark:bg-green-500/10 px-2.5 py-0.5 rounded-full mb-2 font-medium border border-emerald-200 dark:border-green-500/10">
               <CheckCircle size={10} />
               <span>Processing Complete</span>
             </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-white">Reconstruction Results</h1>
+            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Reconstruction Results</h1>
             <p className="text-xs text-slate-500 mt-1">Job ID: {jobId}</p>
           </div>
           <div className="flex space-x-3">
             <button 
               onClick={() => router.push('/upload')}
-              className="flex items-center space-x-2 px-4 py-2.5 bg-slate-900/60 hover:bg-slate-900 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-xl text-sm transition-all cursor-pointer backdrop-blur-sm"
+              className="flex items-center space-x-2 px-4 py-2.5 bg-white/80 dark:bg-slate-900/60 hover:bg-white dark:hover:bg-slate-900 text-slate-700 dark:text-slate-200 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 rounded-xl text-sm transition-all cursor-pointer backdrop-blur-sm shadow-sm"
             >
               <ArrowLeft size={14} />
               <span>Back to Upload</span>
@@ -101,34 +105,37 @@ export default function ResultsPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* 3D Viewer Panel */}
           <div className="lg:col-span-2 flex flex-col space-y-6">
-            <div className="shadow-2xl rounded-2xl overflow-hidden border border-slate-900 bg-slate-950/20">
-              <ThreeViewer glbUrl={glbUrl} plyUrl={plyUrl} />
+            <div className="shadow-xl rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-900 bg-white/50 dark:bg-slate-950/20">
+              <ThreeViewer 
+                glbUrl={glbUrl} 
+                plyUrl={resultData?.artifacts?.segmented_pointcloud ? plyUrl : ''} 
+              />
             </div>
             
             {/* Metadata Metrics Panel */}
             {resultData && (
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-5 glass-card rounded-2xl">
-                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Vertices</span>
-                  <span className="text-xl font-extrabold text-white mt-1">
+                  <span className="text-xl font-extrabold text-slate-800 dark:text-white mt-1">
                     {resultData.mesh_metadata?.vertex_count?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
-                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Faces</span>
-                  <span className="text-xl font-extrabold text-white mt-1">
+                  <span className="text-xl font-extrabold text-slate-800 dark:text-white mt-1">
                     {resultData.mesh_metadata?.face_count?.toLocaleString() || 'N/A'}
                   </span>
                 </div>
-                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Points Sampled</span>
-                  <span className="text-xl font-extrabold text-white mt-1">
+                  <span className="text-xl font-extrabold text-slate-800 dark:text-white mt-1">
                     {resultData.pointcloud_metadata?.point_count?.toLocaleString() || '100,000'}
                   </span>
                 </div>
-                <div className="flex flex-col p-3 rounded-xl bg-slate-950/40 border border-slate-900">
+                <div className="flex flex-col p-3 rounded-xl bg-slate-50/80 dark:bg-slate-950/40 border border-slate-200/80 dark:border-slate-900">
                   <span className="text-[10px] uppercase tracking-wider font-bold text-slate-500">Semantic Clusters</span>
-                  <span className="text-xl font-extrabold text-white mt-1">
+                  <span className="text-xl font-extrabold text-slate-800 dark:text-white mt-1">
                     {resultData.dbscan_metadata?.total_clusters || '1'}
                   </span>
                 </div>
@@ -140,8 +147,8 @@ export default function ResultsPage() {
           <div className="flex flex-col space-y-6">
             <div className="p-6 glass-card rounded-2xl shadow-xl">
               <div className="flex items-center space-x-2 mb-5">
-                <Info size={16} className="text-blue-400" />
-                <h2 className="text-lg font-bold text-white">Pipeline Deliverables</h2>
+                <Info size={16} className="text-indigo-600 dark:text-blue-400" />
+                <h2 className="text-lg font-bold text-slate-900 dark:text-white">Pipeline Deliverables</h2>
               </div>
               <DownloadPanel jobId={jobId} />
             </div>

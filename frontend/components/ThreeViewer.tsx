@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls } from '@react-three/drei';
+import { OrbitControls, Environment } from '@react-three/drei';
 import * as THREE from 'three';
 import { PLYLoader } from 'three/examples/jsm/loaders/PLYLoader.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { RotateCcw, Box, Disc, Maximize2, Minimize2, Loader2, AlertTriangle } from 'lucide-react';
+import { useTheme } from '@/context/ThemeContext';
 
 interface ThreeViewerProps {
   glbUrl: string;
@@ -43,6 +44,7 @@ function CameraAutoFitter({ object }: { object: THREE.Object3D | null }) {
 }
 
 export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
+  const { theme } = useTheme();
   const [viewMode, setViewMode] = useState<'mesh' | 'pointcloud'>('mesh');
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +69,24 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
       glbUrl,
       (gltf) => {
         const scene = gltf.scene;
+
+        // Traverse mesh nodes to fix material rendering & lighting issues
+        scene.traverse((child) => {
+          if ((child as THREE.Mesh).isMesh) {
+            const mesh = child as THREE.Mesh;
+            if (mesh.material) {
+              const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+              materials.forEach((mat) => {
+                mat.side = THREE.DoubleSide;
+                mat.needsUpdate = true;
+                if (mat instanceof THREE.MeshStandardMaterial) {
+                  if (mat.roughness > 0.8) mat.roughness = 0.5;
+                }
+              });
+            }
+          }
+        });
+
         // Compute bounding box and adjust Y position to sit flat on the grid (Y = -0.5)
         const box = new THREE.Box3().setFromObject(scene);
         const yOffset = -0.5 - box.min.y;
@@ -146,7 +166,7 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
   }, [viewMode, meshObject, plyGeometry]);
   
   const resetCamera = () => {
-    setResetKey(prev => prev + 1);
+    setResetKey((prev) => prev + 1);
   };
   
   const toggleFullscreen = () => {
@@ -154,7 +174,7 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
     if (!document.fullscreenElement) {
       containerRef.current.requestFullscreen().then(() => {
         setIsFullscreen(true);
-      }).catch(err => {
+      }).catch((err) => {
         console.error('Fullscreen request failed:', err);
       });
     } else {
@@ -173,21 +193,23 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
   }, []);
+
+  const isLight = theme === 'light';
   
   return (
     <div 
       ref={containerRef} 
-      className={`w-full bg-slate-950 border border-slate-900 rounded-2xl overflow-hidden relative transition-all duration-300 flex flex-col ${
+      className={`w-full bg-slate-100 dark:bg-slate-950 border border-slate-200 dark:border-slate-900 rounded-2xl overflow-hidden relative transition-all duration-300 flex flex-col shadow-inner ${
         isFullscreen ? 'h-screen w-screen rounded-none border-none' : 'aspect-video'
       }`}
     >
       {/* Top Controls Bar */}
       <div className="absolute top-4 left-4 right-4 flex items-center justify-between z-10 pointer-events-none">
-        <div className="flex bg-slate-900/90 border border-slate-800 rounded-lg p-1 pointer-events-auto">
+        <div className="flex bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 rounded-xl p-1 pointer-events-auto shadow-md">
           <button 
             onClick={() => setViewMode('mesh')}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              viewMode === 'mesh' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'mesh' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'
             }`}
           >
             <Box size={14} />
@@ -195,8 +217,8 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
           </button>
           <button 
             onClick={() => setViewMode('pointcloud')}
-            className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-              viewMode === 'pointcloud' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-slate-200'
+            className={`flex items-center space-x-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+              viewMode === 'pointcloud' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800/50'
             }`}
           >
             <Disc size={14} />
@@ -207,14 +229,14 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
         <div className="flex space-x-2 pointer-events-auto">
           <button 
             onClick={resetCamera}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all"
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm cursor-pointer"
             title="Reset Camera"
           >
             <RotateCcw size={15} />
           </button>
           <button 
             onClick={toggleFullscreen}
-            className="flex items-center justify-center w-8 h-8 rounded-lg bg-slate-900/90 border border-slate-800 text-slate-400 hover:text-slate-200 hover:border-slate-700 transition-all"
+            className="flex items-center justify-center w-8 h-8 rounded-xl bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-slate-200 hover:border-slate-300 dark:hover:border-slate-700 transition-all shadow-sm cursor-pointer"
             title={isFullscreen ? 'Exit Fullscreen' : 'Fullscreen'}
           >
             {isFullscreen ? <Minimize2 size={15} /> : <Maximize2 size={15} />}
@@ -224,34 +246,40 @@ export default function ThreeViewer({ glbUrl, plyUrl }: ThreeViewerProps) {
       
       {/* Loading Overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-slate-950/80 flex flex-col items-center justify-center z-20">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-2" />
-          <p className="text-xs font-medium text-slate-400">Loading 3D asset...</p>
+        <div className="absolute inset-0 bg-slate-900/40 dark:bg-slate-950/80 backdrop-blur-xs flex flex-col items-center justify-center z-20">
+          <Loader2 className="w-8 h-8 text-indigo-600 dark:text-indigo-400 animate-spin mb-2" />
+          <p className="text-xs font-medium text-slate-700 dark:text-slate-300">Loading 3D asset...</p>
         </div>
       )}
       
       {/* Error Overlay */}
       {error && (
-        <div className="absolute inset-0 bg-slate-950/90 flex flex-col items-center justify-center p-6 text-center z-20">
-          <AlertTriangle className="w-10 h-10 text-red-500 mb-2" />
-          <p className="text-sm font-semibold text-slate-200">{error}</p>
-          <p className="text-xs text-slate-500 mt-1">Please try re-generating or check the backend logs.</p>
+        <div className="absolute inset-0 bg-slate-900/50 dark:bg-slate-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20">
+          <AlertTriangle className="w-10 h-10 text-rose-500 mb-2" />
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{error}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">Please try re-generating or check the backend logs.</p>
         </div>
       )}
       
       {/* 3D Canvas */}
       {!error && (
         <div className="flex-grow w-full h-full">
-          <Canvas key={resetKey} gl={{ antialias: true }} camera={{ fov: 45, near: 0.1, far: 1000 }}>
-            <ambientLight intensity={1.5} />
-            <directionalLight position={[10, 10, 10]} intensity={1.5} />
-            <directionalLight position={[-10, -10, -10]} intensity={0.5} />
+          <Canvas key={resetKey} gl={{ antialias: true, alpha: true }} camera={{ fov: 45, near: 0.1, far: 1000 }}>
+            <color attach="background" args={[isLight ? '#f8fafc' : '#030712']} />
+            <hemisphereLight intensity={1.8} skyColor={isLight ? '#ffffff' : '#cbd5e1'} groundColor={isLight ? '#cbd5e1' : '#1e293b'} />
+            <ambientLight intensity={1.8} />
+            <directionalLight position={[10, 15, 10]} intensity={2.0} />
+            <directionalLight position={[-10, 10, -10]} intensity={1.2} />
+            <directionalLight position={[0, -10, 10]} intensity={0.8} />
             
+            {/* HDRI Environment lighting ensures materials and textures render accurately */}
+            <Environment preset="city" />
+
             {activeObject && <primitive object={activeObject} />}
             
             <CameraAutoFitter object={activeObject} />
             <OrbitControls makeDefault enableDamping dampingFactor={0.05} />
-            <gridHelper args={[20, 20, '#1e293b', '#0f172a']} position={[0, -0.5, 0]} />
+            <gridHelper args={[20, 20, isLight ? '#818cf8' : '#6366f1', isLight ? '#cbd5e1' : '#1e293b']} position={[0, -0.5, 0]} />
           </Canvas>
         </div>
       )}

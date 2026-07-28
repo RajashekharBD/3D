@@ -90,11 +90,11 @@ export default function HistoryGrid() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-indigo-500"></div>
         </div>
       ) : jobs.length === 0 ? (
-        <div className="flex flex-col items-center justify-center p-12 bg-slate-900/20 border border-slate-800 rounded-2xl text-center space-y-4">
-          <Database className="h-12 w-12 text-slate-700" />
-          <h3 className="text-lg font-bold text-slate-300">No History Records</h3>
+        <div className="flex flex-col items-center justify-center p-12 bg-white/80 dark:bg-slate-900/20 border border-slate-200 dark:border-slate-800 rounded-2xl text-center space-y-4 shadow-sm">
+          <Database className="h-12 w-12 text-slate-400 dark:text-slate-700" />
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-300">No History Records</h3>
           <p className="text-slate-500 text-sm max-w-sm">
-            You haven't uploaded any images yet. Start by generating a 3D reconstruction from the home page.
+            You haven&apos;t uploaded any images yet. Start by generating a 3D reconstruction from the home page.
           </p>
         </div>
       ) : (
@@ -117,19 +117,19 @@ export default function HistoryGrid() {
               <button
                 onClick={() => setPage((p) => Math.max(p - 1, 1))}
                 disabled={page === 1}
-                className="flex items-center space-x-1 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl transition duration-150 text-xs font-semibold text-slate-300 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl transition duration-150 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm disabled:opacity-50"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
                 <span>Prev</span>
               </button>
               <span className="text-xs text-slate-500 font-medium">
-                Page <span className="text-slate-300 font-bold">{page}</span> of{' '}
-                <span className="text-slate-300 font-bold">{pages}</span>
+                Page <span className="text-slate-800 dark:text-slate-300 font-bold">{page}</span> of{' '}
+                <span className="text-slate-800 dark:text-slate-300 font-bold">{pages}</span>
               </span>
               <button
                 onClick={() => setPage((p) => Math.min(p + 1, pages))}
                 disabled={page === pages}
-                className="flex items-center space-x-1 px-4 py-2 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl transition duration-150 text-xs font-semibold text-slate-300 disabled:opacity-50"
+                className="flex items-center space-x-1 px-4 py-2 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl transition duration-150 text-xs font-semibold text-slate-700 dark:text-slate-300 shadow-sm disabled:opacity-50"
               >
                 <span>Next</span>
                 <ArrowRight className="h-3.5 w-3.5" />

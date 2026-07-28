@@ -11,8 +11,8 @@ export default function ProcessingPage() {
   return (
     <ProtectedRoute>
       <div className="flex flex-col items-center justify-center py-16 px-6 flex-grow w-full">
-        <h1 className="text-3xl font-bold mb-2 tracking-tight text-white">Processing Asset</h1>
-        <p className="text-sm text-slate-400 mb-10">Job ID: {jobId}</p>
+        <h1 className="text-3xl font-bold mb-2 tracking-tight text-slate-900 dark:text-white">Processing Asset</h1>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-10">Job ID: {jobId}</p>
 
         <ProgressTracker jobId={jobId} pollingIntervalMs={3000} />
       </div>

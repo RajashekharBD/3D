@@ -119,23 +119,23 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
         {/* Status Icon */}
         <div className="flex justify-center mb-6">
           {isFailed ? (
-            <div className="w-16 h-16 rounded-full bg-red-950/30 border border-red-900/40 flex items-center justify-center shadow-lg">
-              <XCircle className="w-8 h-8 text-red-500" />
+            <div className="w-16 h-16 rounded-full bg-rose-50 dark:bg-red-950/30 border border-rose-200 dark:border-red-900/40 flex items-center justify-center shadow-lg">
+              <XCircle className="w-8 h-8 text-rose-600 dark:text-red-500" />
             </div>
           ) : isComplete ? (
-            <div className="w-16 h-16 rounded-full bg-emerald-950/30 border border-emerald-900/40 flex items-center justify-center shadow-lg animate-pulse">
-              <CheckCircle2 className="w-8 h-8 text-emerald-400" />
+            <div className="w-16 h-16 rounded-full bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 flex items-center justify-center shadow-lg animate-pulse">
+              <CheckCircle2 className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
             </div>
           ) : (
-            <div className="w-16 h-16 rounded-full bg-blue-950/30 border border-blue-900/40 flex items-center justify-center shadow-lg">
-              <Loader2 className="w-8 h-8 text-blue-400 animate-spin" />
+            <div className="w-16 h-16 rounded-full bg-indigo-50 dark:bg-blue-950/30 border border-indigo-200 dark:border-blue-900/40 flex items-center justify-center shadow-lg">
+              <Loader2 className="w-8 h-8 text-indigo-600 dark:text-blue-400 animate-spin" />
             </div>
           )}
         </div>
 
         {/* Current Stage Label */}
         <div className="text-center mb-6">
-          <p className="text-lg font-bold text-white mb-1">
+          <p className="text-lg font-bold text-slate-900 dark:text-white mb-1">
             {isComplete ? 'Processing Complete' : isFailed ? 'Processing Failed' : currentStage}
           </p>
           <p className="text-xs text-slate-500">
@@ -150,18 +150,18 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
         {/* Progress Bar */}
         <div className="mb-4">
           <div className="flex justify-between items-center mb-2">
-            <span className="text-xs font-semibold text-slate-400">Progress</span>
+            <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Progress</span>
             <span className={`text-sm font-extrabold ${
-              isFailed ? 'text-red-400' : isComplete ? 'text-emerald-400' : 'text-blue-400'
+              isFailed ? 'text-rose-600 dark:text-red-400' : isComplete ? 'text-emerald-600 dark:text-emerald-400' : 'text-indigo-600 dark:text-blue-400'
             }`}>
               {progress}%
             </span>
           </div>
-          <div className="w-full bg-slate-950/60 h-2.5 rounded-full overflow-hidden border border-slate-900">
+          <div className="w-full bg-slate-200 dark:bg-slate-950/60 h-2.5 rounded-full overflow-hidden border border-slate-300 dark:border-slate-900">
             <div
               className={`h-full transition-all duration-700 ease-out rounded-full ${
                 isFailed
-                  ? 'bg-red-500'
+                  ? 'bg-rose-500'
                   : isComplete
                     ? 'bg-gradient-to-r from-emerald-500 to-teal-400'
                     : 'bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500'
@@ -172,14 +172,14 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
         </div>
 
         {error && (
-          <p className="text-xs text-amber-400/80 text-center mt-3">{error}</p>
+          <p className="text-xs text-amber-600 dark:text-amber-400/80 text-center mt-3">{error}</p>
         )}
       </div>
 
       {/* Phase List */}
       <div className="glass-card rounded-2xl p-6 shadow-xl">
-        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-4 flex items-center space-x-1.5 border-b border-slate-900/60 pb-3">
-          <Zap size={12} className="text-indigo-400 animate-pulse" />
+        <h3 className="text-xs uppercase tracking-wider font-bold text-slate-500 mb-4 flex items-center space-x-1.5 border-b border-slate-200 dark:border-slate-900/60 pb-3">
+          <Zap size={12} className="text-indigo-600 dark:text-indigo-400 animate-pulse" />
           <span>Pipeline Stages</span>
         </h3>
         <div className="space-y-2">
@@ -191,22 +191,22 @@ export default function ProgressTracker({ jobId, pollingIntervalMs = 3000 }: Pro
             return (
               <div
                 key={phaseKey}
-                className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-xs transition-all ${
+                className={`flex items-center space-x-3 px-3.5 py-2.5 rounded-xl text-xs transition-all ${
                   isDone
-                    ? 'bg-emerald-950/20 text-emerald-400'
+                    ? 'bg-emerald-50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-900/30 font-medium'
                     : isActive
-                      ? 'bg-blue-950/30 text-blue-300 border border-blue-900/30'
-                      : 'text-slate-600'
+                      ? 'bg-indigo-50 dark:bg-blue-950/30 text-indigo-700 dark:text-blue-300 border border-indigo-200 dark:border-blue-900/30 font-semibold shadow-xs'
+                      : 'text-slate-500 dark:text-slate-500'
                 }`}
               >
                 {isDone ? (
-                  <CheckCircle2 size={14} className="flex-shrink-0" />
+                  <CheckCircle2 size={14} className="flex-shrink-0 text-emerald-600 dark:text-emerald-400" />
                 ) : isActive ? (
-                  <Loader2 size={14} className="flex-shrink-0 animate-spin" />
+                  <Loader2 size={14} className="flex-shrink-0 animate-spin text-indigo-600 dark:text-blue-400" />
                 ) : (
-                  <div className="w-3.5 h-3.5 rounded-full border border-slate-700 flex-shrink-0" />
+                  <div className="w-3.5 h-3.5 rounded-full border border-slate-300 dark:border-slate-700 flex-shrink-0" />
                 )}
-                <span className="font-semibold">{label}</span>
+                <span>{label}</span>
               </div>
             );
           })}
