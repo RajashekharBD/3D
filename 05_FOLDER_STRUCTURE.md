@@ -3,7 +3,7 @@
 
 ## Overview
 
-This document defines the complete production-ready folder structure for the Automated Single-Image to 3D Asset and Point Cloud Generation System.
+This document defines the actual folder structure of the Automated Single-Image to 3D Asset and Point Cloud Generation System.
 
 The project follows a modular architecture where each AI model and processing stage is isolated into its own module. This improves maintainability, scalability, testing, and future expansion.
 
@@ -45,12 +45,12 @@ backend/
 │   ├── controllers/
 │   ├── services/
 │   ├── pipeline/
-│   ├── models/
+│   ├── models/        (empty)
 │   ├── utils/
 │   ├── schemas/
 │   ├── middleware/
 │   ├── core/
-│   ├── config/
+│   ├── config/        (empty)
 │   └── main.py
 │
 ├── requirements.txt
@@ -71,19 +71,17 @@ Purpose
 ```
 api/
 
+health.py
+
 upload.py
 
-detect.py
-
-segment.py
-
-generate3d.py
-
-pointcloud.py
+pipeline.py
 
 download.py
 
-health.py
+history.py
+
+profile.py
 ```
 
 Purpose
@@ -102,6 +100,10 @@ upload_controller.py
 pipeline_controller.py
 
 download_controller.py
+
+history_controller.py
+
+profile_controller.py
 ```
 
 Purpose
@@ -135,7 +137,7 @@ Contains business logic.
 ```
 pipeline/
 
-pipeline_manager.py
+run.py
 
 image_pipeline.py
 
@@ -169,7 +171,7 @@ hunyuan3d/
 
 rembg/
 
-common/
+common/          (empty)
 ```
 
 Purpose
@@ -225,11 +227,7 @@ hunyuan3d/
 
 loader.py
 
-shape_generation.py
-
-texture_generation.py
-
-mesh_export.py
+generator.py
 ```
 
 ---
@@ -255,13 +253,11 @@ mesh_utils.py
 
 pointcloud_utils.py
 
-cuda_utils.py
+validators.py
 
 logger.py
 
-validators.py
-
-file_utils.py
+artifacts_manager.py
 ```
 
 Purpose
@@ -298,31 +294,63 @@ settings.py
 constants.py
 
 exceptions.py
+
+auth.py
+
+database.py
 ```
 
 Purpose
 
-Application configuration.
+Application configuration and cross-cutting concerns (JWT auth, Supabase sync).
 
 ---
 
-# Config
+# Middleware
+
+```
+middleware/
+
+exception_middleware.py
+```
+
+Purpose
+
+Centralized error handling and consistent JSON error responses.
+
+---
+
+# Config Files
 
 ```
 configs/
 
-model_config.yaml
-
-pipeline.yaml
+app.yaml
 
 dbscan.yaml
 
+florence2.yaml
+
+frontend.yaml
+
+grounding_dino.yaml
+
+hunyuan3d.yaml
+
+image_processing.yaml
+
 logging.yaml
+
+pointcloud.yaml
+
+rembg.yaml
+
+sam2.yaml
 ```
 
 Purpose
 
-Stores configurable parameters.
+Stores configurable parameters for each module.
 
 ---
 
@@ -335,15 +363,15 @@ app/
 
 components/
 
-hooks/
+hooks/          (empty)
 
-services/
+types/          (empty)
 
 styles/
 
 public/
 
-types/
+context/
 
 utils/
 ```
@@ -359,19 +387,35 @@ User interface.
 ```
 components/
 
-Upload/
-
-Viewer/
-
-Progress/
+Auth/
+  LoginForm.tsx
+  SignupForm.tsx
+  ForgotPasswordForm.tsx
+  ProtectedRoute.tsx
 
 Download/
-
-Layout/
-
-Navbar/
+  DownloadPanel.tsx
 
 Footer/
+  Footer.tsx
+
+History/
+  HistoryGrid.tsx
+  HistoryCard.tsx
+  SearchBar.tsx
+  SortMenu.tsx
+
+Navbar/
+  Navbar.tsx
+
+Profile/
+  ProfileCard.tsx
+  StatisticsCard.tsx
+
+Progress/
+  ProgressTracker.tsx
+
+ThreeViewer.tsx
 ```
 
 Purpose
@@ -385,48 +429,46 @@ Reusable UI components.
 ```
 app/
 
-page.tsx
+page.tsx                     (Landing)
 
-upload/
+upload/page.tsx
 
-viewer/
+viewer/page.tsx
 
-download/
+download/page.tsx
+
+processing/[jobId]/page.tsx
+
+results/[jobId]/page.tsx
+
+history/page.tsx
+
+profile/page.tsx
+
+login/page.tsx
+
+signup/page.tsx
+
+forgot-password/page.tsx
 ```
 
 ---
 
-# Services
+# Context & Utils
 
 ```
-services/
+context/
 
-api.ts
+AuthContext.tsx
 
-upload.ts
+utils/
 
-download.ts
+supabaseClient.ts
 ```
 
 Purpose
 
-Frontend API communication.
-
----
-
-# Public
-
-```
-public/
-
-icons/
-
-images/
-
-logo/
-
-fonts/
-```
+Frontend state management and Supabase client initialization.
 
 ---
 
@@ -455,62 +497,32 @@ Stores uploaded and intermediate files.
 ```
 outputs/
 
-images/
+<job_id>/
+  original.png
+  result.json
+  detection.png
+  enhanced.png
+  segmentation.png
+  rgba.png
+  caption.txt
+  grounding_prompt.txt
+  mask.png
+  mask_overlay.png
+  part_detection.png
+  model.glb
+  model.obj (optional)
+  pointcloud.ply
+  segmented_pointcloud.ply
+  preview.png
+  scene.json
 
-meshes/
-
-pointcloud/
-
-metadata/
+  debug/
+    (pipeline debug artifacts)
 ```
 
----
+Purpose
 
-# Images
-
-```
-images/
-
-detection.png
-
-segmentation.png
-
-rgba.png
-```
-
----
-
-# Meshes
-
-```
-meshes/
-
-model.glb
-```
-
----
-
-# Point Cloud
-
-```
-pointcloud/
-
-pointcloud.ply
-
-segmented_pointcloud.ply
-```
-
----
-
-# Metadata
-
-```
-metadata/
-
-result.json
-
-pipeline.json
-```
+Flat per-job output directory structure.
 
 ---
 
@@ -519,13 +531,9 @@ pipeline.json
 ```
 scripts/
 
-download_models.py
-
 setup_environment.py
 
-clean_outputs.py
-
-benchmark.py
+build_report.py
 ```
 
 Purpose
@@ -546,11 +554,23 @@ integration/
 performance/
 
 fixtures/
+
+e2e/
+
+frontend/
 ```
 
 Purpose
 
 Automated testing.
+
+Unit tests cover individual modules (caption, detection, segmentation, shape generation, texture generation, point cloud, dbscan, upload, download, health, auth, config, etc.).
+
+Integration tests cover the full API flow.
+
+Performance tests benchmark pipeline throughput.
+
+Frontend tests use Playwright for UI testing.
 
 ---
 
@@ -611,9 +631,7 @@ errors.log
 ```
 docker/
 
-Dockerfile.backend
-
-Dockerfile.frontend
+(empty)
 ```
 
 ---

@@ -3,14 +3,14 @@
 
 ## Overview
 
-Although the first version of the project can run without a database, using a database provides:
+The system uses Supabase (PostgreSQL) as its database backend, providing:
 
 - Job Tracking
 - Processing Status
 - Output Metadata
 - Error Logs
-- Performance Statistics
-- Future User Management
+- User Management
+- Authentication
 
 The database should **not store AI model weights or generated files**. Those remain on disk (or object storage). The database stores only metadata.
 
@@ -18,37 +18,39 @@ The database should **not store AI model weights or generated files**. Those rem
 
 # Database Technology
 
-Development
+Database
 
-SQLite
+Supabase (PostgreSQL)
 
-Production
+Client Library
 
-PostgreSQL
+supabase-py
 
-ORM
+Auth
 
-SQLAlchemy
+Supabase Auth (built-in)
 
 Migration Tool
 
-Alembic
+Supabase CLI
 
 ---
 
 # Database Architecture
 
 ```
-Frontend
+Frontend (Next.js)
+      │
+      ├── Supabase JS SDK (auth)
       │
       ▼
 FastAPI Backend
       │
       ▼
-SQLAlchemy
+supabase-py Client
       │
       ▼
-PostgreSQL
+Supabase PostgreSQL
 ```
 
 ---
@@ -56,145 +58,163 @@ PostgreSQL
 # Entity Relationship Diagram
 
 ```
-Job
- │
- ├── OutputFile
- │
- ├── PipelineLog
- │
- └── PerformanceMetrics
+auth.users
+   │
+   │ (1:1)
+   ▼
+profiles
+   │
+   │ (1:N)
+   ▼
+jobs
+   │
+   │ (1:N)
+   ▼
+artifacts
 ```
 
 ---
 
-# Table 1 — Jobs
+# Table 1 — Profiles
 
 Purpose
 
-Stores one record for every uploaded image.
+Stores application user profiles synced with Supabase Auth.
 
-| Column        | Type      |
-| ------------- | --------- |
-| id            | UUID      |
-| filename      | VARCHAR   |
-| original_name | VARCHAR   |
-| status        | VARCHAR   |
-| current_stage | VARCHAR   |
-| progress      | INTEGER   |
-| created_at    | TIMESTAMP |
-| updated_at    | TIMESTAMP |
-| completed_at  | TIMESTAMP |
+| Column     | Type        |
+| ---------- | ----------- |
+| id         | UUID (PK)   |
+| email      | TEXT        |
+| created_at | TIMESTAMPTZ |
+| updated_at | TIMESTAMPTZ |
+| last_login | TIMESTAMPTZ |
+
+Auto-created via trigger on `auth.users` insert.
+
+---
+
+# Table 2 — Jobs
+
+Purpose
+
+Stores one record for every pipeline execution.
+
+| Column                     | Type           |
+| -------------------------- | -------------- |
+| job_id                     | UUID (PK)      |
+| user_id                    | UUID (FK)      |
+| original_filename          | TEXT           |
+| original_image_url         | TEXT           |
+| thumbnail_url              | TEXT           |
+| status                     | TEXT           |
+| started_at                 | TIMESTAMPTZ    |
+| completed_at               | TIMESTAMPTZ    |
+| processing_duration_seconds| DOUBLE PRECISION|
+| model_generated            | BOOLEAN        |
+| pointcloud_generated       | BOOLEAN        |
+| pipeline_version           | VARCHAR(20)    |
+| error_message              | TEXT           |
+| processing_device          | TEXT           |
+| gpu_name                   | TEXT           |
+| input_width                | INTEGER        |
+| input_height               | INTEGER        |
+| total_pipeline_time_ms     | BIGINT         |
+| created_at                 | TIMESTAMPTZ    |
+| updated_at                 | TIMESTAMPTZ    |
+| is_deleted                 | BOOLEAN        |
 
 Status Values
 
-- Queued
-- Running
-- Completed
-- Failed
-- Cancelled
+- uploaded
+- processing
+- completed
+- failed
 
 ---
 
-# Table 2 — Output Files
+# Table 3 — Artifacts
 
 Purpose
 
-Stores paths of generated outputs.
+Stores metadata for files generated during pipeline execution.
 
-| Column               | Type |
-| -------------------- | ---- |
-| id                   | UUID |
-| job_id               | UUID |
-| detection_image      | TEXT |
-| segmentation_image   | TEXT |
-| rgba_image           | TEXT |
-| glb_model            | TEXT |
-| pointcloud           | TEXT |
-| segmented_pointcloud | TEXT |
-| metadata_json        | TEXT |
+| Column        | Type        |
+| ------------- | ----------- |
+| id            | UUID (PK)   |
+| job_id        | UUID (FK)   |
+| artifact_type | TEXT        |
+| storage_path  | TEXT        |
+| file_size     | BIGINT      |
+| mime_type     | VARCHAR(100)|
+| created_at    | TIMESTAMPTZ |
 
-Relationship
+Artifact Types
 
-Many Output Files
-
-↓
-
-One Job
+- original, enhanced, detection, part_detection, mask
+- segmentation, mask_overlay, rgba, model, pointcloud
+- segmented_pointcloud, caption, grounding_prompt, result
 
 ---
 
-# Table 3 — Pipeline Logs
+# Indexes
 
-Purpose
+Jobs
 
-Stores execution history.
+- idx_jobs_user (user_id)
+- idx_jobs_created (created_at DESC)
+- idx_jobs_status (status)
+- idx_jobs_user_status_created (user_id, status, created_at DESC)
 
-| Column      | Type      |
-| ----------- | --------- |
-| id          | UUID      |
-| job_id      | UUID      |
-| stage       | VARCHAR   |
-| status      | VARCHAR   |
-| duration_ms | INTEGER   |
-| message     | TEXT      |
-| created_at  | TIMESTAMP |
+Artifacts
 
-Example
+- idx_artifacts_job (job_id)
+- UNIQUE (job_id, artifact_type)
 
-```
-Stage
+Profiles
 
-GroundingDINO
-
-Status
-
-Completed
-
-Duration
-
-3920 ms
-```
+- idx_profiles_email_unique (email)
 
 ---
 
-# Table 4 — Performance Metrics
+# Row Level Security
 
-Purpose
+All tables have RLS enabled and forced.
 
-Stores execution performance.
+Profiles
 
-| Column               | Type    |
-| -------------------- | ------- |
-| id                   | UUID    |
-| job_id               | UUID    |
-| upload_time_ms       | INTEGER |
-| caption_time_ms      | INTEGER |
-| detection_time_ms    | INTEGER |
-| segmentation_time_ms | INTEGER |
-| background_time_ms   | INTEGER |
-| generation_time_ms   | INTEGER |
-| pointcloud_time_ms   | INTEGER |
-| total_time_ms        | INTEGER |
+- SELECT / UPDATE: own profile only (auth.uid() = id)
+
+Jobs
+
+- SELECT: own non-deleted jobs (user_id = auth.uid() AND is_deleted = FALSE)
+- INSERT / UPDATE / DELETE: own jobs only
+
+Artifacts
+
+- SELECT / INSERT / UPDATE / DELETE: artifacts linked to own jobs via subquery
 
 ---
 
-# Relationships
+# Triggers
 
-```
-Job
+update_updated_at_column
 
-↓
+Auto-updates `updated_at` on row modification (profiles, jobs).
 
-Output Files
+handle_new_user
 
-↓
+On `auth.users` INSERT — auto-creates profile row.
 
-Pipeline Logs
+handle_user_login
 
-↓
+On `auth.users.last_sign_in_at` UPDATE — syncs `last_login`.
 
-Performance Metrics
-```
+---
+
+# Storage Buckets
+
+- `original-images` (Private): Raw uploads
+- `reconstruction-artifacts` (Private): GLBs, point clouds, masks, captions
 
 ---
 
@@ -202,161 +222,86 @@ Performance Metrics
 
 ```
 Upload
-
-↓
-
-Queued
-
-↓
-
-Running
-
-↓
-
-Completed
-
-OR
-
-Failed
+  ↓
+uploaded
+  ↓
+processing
+  ↓
+completed
+  OR
+failed
 ```
 
 ---
 
 # Job Progress
 
-| Progress | Stage              |
-| -------- | ------------------ |
-| 0%       | Upload             |
-| 5%       | Validation         |
-| 10%      | Image Analysis     |
-| 20%      | CLAHE              |
-| 30%      | Florence-2         |
-| 45%      | GroundingDINO      |
-| 60%      | SAM2.1             |
-| 70%      | Background Removal |
-| 85%      | Hunyuan3D-2        |
-| 95%      | Open3D             |
-| 100%     | Completed          |
-
----
-
-# Database Indexes
-
-Jobs
-
-- id
-- status
-- created_at
-
-Pipeline Logs
-
-- job_id
-- stage
-
-Output Files
-
-- job_id
-
-Performance Metrics
-
-- job_id
-
----
-
-# Data Retention
-
-Temporary Files
-
-Delete after
-
-24 Hours
-
-Database Records
-
-Keep
-
-30 Days
-
-Logs
-
-Keep
-
-30 Days
-
----
-
-# File Storage
-
-The database stores only file paths.
-
-Example
-
-```
-outputs/
-
-images/
-
-detection.png
-
-meshes/
-
-model.glb
-
-pointcloud/
-
-pointcloud.ply
-```
+| Stage              | Progress |
+| ------------------ | -------- |
+| Upload             | 0%       |
+| Validation         | 5%       |
+| Image Analysis     | 10%      |
+| CLAHE              | 20%      |
+| Florence-2         | 30%      |
+| GroundingDINO      | 45%      |
+| SAM2.1             | 60%      |
+| Background Removal | 70%      |
+| Hunyuan3D-2        | 85%      |
+| Open3D             | 95%      |
+| Completed          | 100%     |
 
 ---
 
 # Error Recording
 
-Every failure stores
+Every failure stores:
 
 - Job ID
 - Failed Stage
 - Error Message
-- Stack Trace (optional)
 - Timestamp
 
----
-
-# Future Expansion
-
-The schema supports future features without redesign:
-
-- User Accounts
-- Authentication
-- Multiple Projects
-- Batch Processing
-- Cloud Storage
-- Processing History
-- Team Collaboration
-- Project Sharing
-- Analytics Dashboard
+Stored in `jobs.error_message` and `jobs.status = 'failed'`.
 
 ---
 
-# Backup Strategy
+# File Storage
 
-Development
+The database stores only file paths (as `storage_path` in artifacts).
 
-SQLite Backup
+```
+outputs/
+  images/
+    detection.png
+  meshes/
+    model.glb
+  pointcloud/
+    pointcloud.ply
+```
 
-Production
+---
 
-Daily PostgreSQL Backup
+# Migration File
+
+```
+supabase/migrations/20260717000000_auth_history_schema.sql
+```
+
+Run via Supabase CLI:
+
+```bash
+supabase migration up
+```
 
 ---
 
 # Database Summary
 
-| Table              | Purpose                     |
-| ------------------ | --------------------------- |
-| Jobs               | Tracks pipeline execution   |
-| OutputFiles        | Stores generated file paths |
-| PipelineLogs       | Records stage execution     |
-| PerformanceMetrics | Stores timing information   |
+| Table     | Purpose                          |
+| --------- | -------------------------------- |
+| profiles  | User profiles (synced with auth) |
+| jobs      | Pipeline execution tracking      |
+| artifacts | Generated file metadata          |
 
 ---
 
@@ -365,7 +310,7 @@ Daily PostgreSQL Backup
 - Store metadata only
 - Keep generated files on disk/object storage
 - Use UUIDs for all primary keys
-- Track every pipeline stage
-- Record execution times
-- Support future scalability
+- RLS for multi-tenant isolation
+- Soft-delete jobs (is_deleted flag)
 - Minimize database writes during AI inference
+- Mock/local fallback when Supabase is unavailable

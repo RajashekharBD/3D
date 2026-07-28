@@ -23,13 +23,19 @@ class UploadController:
             raise
             
         # Initialise job structure and save original.png mapped to user_id
-        artifacts_manager.init_job(job_id, saved_path, user_id=current_user.get("id"), email=current_user.get("email"))
+        original_filename = file.filename or "uploaded_image.png"
+        artifacts_manager.init_job(
+            job_id, 
+            saved_path, 
+            user_id=current_user.get("id"), 
+            email=current_user.get("email"),
+            original_filename=original_filename
+        )
         # Mark validation phase as complete
         artifacts_manager.add_completed_phase(job_id, "validation")
         
-        # Add background task to run the complete reconstruction pipeline
+        # Add background task
         original_png_path = os.path.join(settings.OUTPUT_DIR, job_id, "original.png")
-        
         background_tasks.add_task(execute_full_reconstruction_pipeline, job_id, original_png_path)
         
         return UploadResponse(job_id=job_id)

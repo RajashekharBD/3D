@@ -5,7 +5,7 @@
 
 This document defines the functional and non-functional requirements for the Automated Single-Image to 3D Asset and Point Cloud Generation System.
 
-The objective of the system is to automatically generate a textured 3D model and segmented point cloud from a single input image using modern AI foundation models.
+The objective of the system is to automatically generate a textured 3D model and segmented point cloud from a single input image using modern AI foundation models, with authenticated user access and persistent job history.
 
 ---
 
@@ -153,8 +153,8 @@ SAM2.1 shall generate:
 
 The system shall remove the background using:
 
-- rembg
-- ONNX Runtime
+- rembg (ONNX Runtime)
+- SAM2.1 mask applied to refine alpha channel
 
 Output:
 
@@ -193,7 +193,7 @@ GLB
 The generated mesh shall be viewable inside:
 
 - Open3D
-- Browser (Three.js)
+- Browser (Three.js / React Three Fiber)
 
 ---
 
@@ -234,7 +234,47 @@ Users shall be able to download:
 - GLB
 - PLY
 - PNG
-- JSON (optional metadata)
+- JSON (metadata always generated)
+
+---
+
+## FR-18 User Authentication
+
+The system shall provide user authentication via Supabase Auth.
+
+Requirements:
+
+- Email/password signup and login
+- JWT-based session management
+- Bearer token authorization header for API calls
+- Protected frontend routes redirect unauthenticated users
+- Local development mock user fallback
+
+---
+
+## FR-19 Supabase Database Integration
+
+The system shall persist pipeline execution records to Supabase PostgreSQL.
+
+Tables:
+
+- **profiles** — Synced automatically from `auth.users`
+- **jobs** — Pipeline execution with status, timing, ownership
+- **artifacts** — File metadata for each generated output
+
+The system shall fall back to local JSON file storage when Supabase is unavailable.
+
+---
+
+## FR-20 Job History
+
+The system shall allow authenticated users to:
+
+- View paginated job history
+- Filter by filename and status
+- Sort by newest or oldest
+- View job details and artifact listing
+- Delete (soft delete) jobs
 
 ---
 
@@ -261,6 +301,7 @@ The system shall:
 - Recover from detection failures
 - Retry detection
 - Prevent crashes
+- Fall back to local storage when database is unavailable
 
 ---
 
@@ -281,6 +322,8 @@ The application shall provide:
 - Simple UI
 - Progress indicator
 - Download buttons
+- Login / signup flow
+- History dashboard
 
 ---
 
@@ -300,7 +343,6 @@ Supported Platforms:
 
 - Windows
 - Linux
-- Google Colab
 
 ---
 
@@ -311,6 +353,8 @@ The system shall:
 - Validate uploaded images
 - Reject malicious files
 - Limit upload size
+- Authenticate API requests via JWT
+- Enforce per-user data isolation (RLS policies)
 
 ---
 
@@ -383,8 +427,6 @@ Pillow
 
 NumPy
 
-Trimesh
-
 rembg
 
 ONNX Runtime
@@ -393,11 +435,33 @@ FastAPI
 
 Uvicorn
 
+Supabase
+
+pydantic-settings
+
+PyYAML
+
+python-multipart
+
+httpx
+
+python-jose
+
 Three.js
 
 React
 
 Next.js
+
+Tailwind CSS
+
+React Three Fiber
+
+Drei
+
+lucide-react
+
+@supabase/supabase-js
 
 ---
 
@@ -408,6 +472,8 @@ Florence-2
 GroundingDINO
 
 SAM2.1
+
+rembg (ONNX Runtime)
 
 Hunyuan3D-2
 
@@ -429,11 +495,15 @@ Generated Files
 
 ✓ Segmented Point Cloud
 
+✓ JSON Metadata
+
 ---
 
 # 8. Success Criteria
 
 The project shall be considered successful if it:
+
+✓ Authenticates users
 
 ✓ Detects the object
 
@@ -448,3 +518,5 @@ The project shall be considered successful if it:
 ✓ Segments the point cloud
 
 ✓ Exports all outputs successfully
+
+✓ Persists job history

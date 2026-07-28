@@ -3,332 +3,73 @@
 
 ## Overview
 
-This document describes how the Automated Single-Image to 3D Asset and Point Cloud Generation System will be deployed in Development, Testing, and Production environments.
+This document describes how the Automated Single-Image to 3D Asset and Point Cloud Generation System is deployed in Development, Testing, and Production environments.
 
-The deployment architecture separates the frontend, backend, AI inference pipeline, and storage for better scalability and maintainability.
+The deployment architecture separates the frontend, backend, and storage for better scalability and maintainability.
 
 ---
 
 # Deployment Architecture
 
+```
     User
-                      │
-                      ▼
-             Next.js Frontend
-                      │
-                REST API
-                      │
-                      ▼
-              FastAPI Backend
-                      │
-                      ▼
-            AI Pipeline Manager
-                      │
-     ┌────────────────┼────────────────┐
-     ▼                ▼                ▼
- Florence-2    GroundingDINO      SAM2.1
-     │                │                │
-     └────────────────┼────────────────┘
-                      ▼
-                 Background Removal
-                      ▼
-                 Hunyuan3D-2
-                      ▼
-                   Open3D
-                      ▼
-                  DBSCAN
-                      ▼
-                 Output Storage
-
----
-
-# Deployment Environments
-
-## Development
-
-Purpose
-
-- Local development
-- Feature implementation
-- Debugging
-
-Components
-
-- Next.js Development Server
-- FastAPI Development Server
-- Local GPU
-- Local File Storage
-
----
-
-## Testing
-
-Purpose
-
-- Integration testing
-- Performance testing
-- Bug fixing
-
-Components
-
-- Next.js
-- FastAPI
-- GPU
-- Automated Testing
-
----
-
-## Production
-
-Purpose
-
-- End users
-
-Components
-
-- Reverse Proxy
-- Frontend
-- Backend
-- AI Worker
-- Storage
-- Logging
-
----
-
-# Recommended Production Architecture
-
-Internet
-
-↓
-
-Nginx
-
-↓
-
-Next.js
-
-↓
-
-FastAPI
-
-↓
-
-Pipeline Worker
-
-↓
-
-GPU
-
-↓
-
-Outputs
-
----
-
-# Frontend Deployment
-
-Framework
-
-Next.js
-
-Deployment Options
-
-- Vercel
-- Docker
-- Self Hosted
-
-Recommended
-
-Docker
-
----
-
-# Backend Deployment
-
-Framework
-
-FastAPI
-
-Server
-
-Uvicorn
-
-Process Manager
-
-Gunicorn
-
-Deployment
-
-Docker Container
-
----
-
-# AI Worker
-
-Purpose
-
-Runs the complete AI pipeline.
-
-Responsibilities
-
-- Load AI models
-- Execute pipeline
-- Generate outputs
-- Save outputs
-
----
-
-# Storage
-
-Generated files
-
-```
-outputs/
-
-images/
-
-meshes/
-
-pointcloud/
-
-metadata/
-```
-
-Future
-
-Object Storage
-
-Examples
-
-- AWS S3
-- Azure Blob Storage
-- MinIO
-
----
-
-# Logging
-
-Logs
-
-```
-logs/
-
-pipeline.log
-
-backend.log
-
-errors.log
-```
-
-Log Rotation
-
-Enabled
-
----
-
-# Environment Variables
-
-Example
-
-```env
-APP_ENV=production
-
-HOST=0.0.0.0
-
-PORT=8000
-
-CUDA_DEVICE=0
-
-LOG_LEVEL=INFO
-
-OUTPUT_DIR=outputs
-
-TEMP_DIR=data/temp
+      │
+      ▼
+Next.js Frontend  (port 3000)
+      │
+ REST API (/api/v1)
+      │
+      ▼
+FastAPI Backend   (port 8000)
+      │
+      ▼
+ AI Pipeline Manager
+      │
+ ┌────┼────┐
+ ▼    ▼    ▼
+Florence-2 GroundingDINO SAM2.1
+ │    │    │
+ └────┼────┘
+      ▼
+ Background Removal
+      ▼
+  Hunyuan3D-2
+      ▼
+    Open3D
+      ▼
+    DBSCAN
+      ▼
+ Output Storage
 ```
 
 ---
 
-# Reverse Proxy
+# Docker Setup
 
-Recommended
+Current architecture uses **2 services** (frontend + backend) defined in `docker-compose.yml`.
 
-Nginx
+```
+docker-compose.yml
 
-Responsibilities
+services:
+  backend:    FastAPI + AI pipeline, port 8000, GPU-enabled
+  frontend:   Next.js, port 3000, depends on backend
 
-- HTTPS
-- Compression
-- Static files
-- Reverse proxy
-- Security headers
+volumes:
+  shared-data
+  shared-outputs
+  shared-logs
+```
 
----
-
-# HTTPS
-
-SSL Certificate
-
-Let's Encrypt
-
-HTTPS Required
-
-Yes
-
----
-
-# Docker
-
-Recommended Containers
-
-Container 1
-
-Frontend
-
-↓
-
-Container 2
-
-Backend
-
-↓
-
-Container 3
-
-AI Worker
-
-↓
-
-Shared Output Volume
+**Note:** The `docker/` directory is reserved for future Dockerfiles. Currently empty.
 
 ---
 
 # Startup Order
 
-1
-
-Backend
-
-↓
-
-2
-
-Frontend
-
-↓
-
-3
-
-AI Worker
-
-↓
-
-4
-
-Health Check
-
-↓
-
-Ready
+1. Backend (port 8000)
+2. Frontend (port 3000)
+3. Health Check (`GET /api/v1/health`)
 
 ---
 
@@ -344,34 +85,67 @@ Expected
 
 ```json
 {
-    "status":"healthy"
+    "status": "healthy"
 }
 ```
 
 ---
 
-# Backup
+# Environment Variables
 
-Backup
+```env
+APP_ENV=production
+HOST=0.0.0.0
+PORT=8000
+CUDA_DEVICE=0
+LOG_LEVEL=INFO
+OUTPUT_DIR=outputs
+TEMP_DIR=data/temp
+NEXT_PUBLIC_API_URL=http://backend:8000/api/v1
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+```
 
-Configuration
+---
 
-Logs
+# Storage
 
-Database (future)
+Generated files
 
-Generated files (optional)
+```
+outputs/
+  images/
+  meshes/
+  pointcloud/
+  metadata/
+```
+
+Future
+
+Object Storage (AWS S3, Azure Blob, MinIO)
+
+---
+
+# Logging
+
+```
+logs/
+  pipeline.log
+  backend.log
+  errors.log
+```
+
+Log rotation enabled.
 
 ---
 
 # Security
 
-- HTTPS
 - Input Validation
-- File Size Limits
-- Allowed File Types
+- File Size Limits (25MB)
+- Allowed File Types (jpg, png, webp)
 - Secure Headers
-- Rate Limiting (future)
 
 ---
 
@@ -385,63 +159,14 @@ Generated files (optional)
 
 ---
 
-# Monitoring
-
-Monitor
-
-- CPU Usage
-- RAM Usage
-- GPU Usage
-- VRAM Usage
-- Disk Usage
-- Pipeline Time
-- Error Rate
-
----
-
 # Failure Recovery
 
-If a stage fails
+If a stage fails:
 
-↓
-
-Log Error
-
-↓
-
-Clean Temporary Files
-
-↓
-
-Return Failure Status
-
-↓
-
-Allow User Retry
-
----
-
-# Deployment Checklist
-
-Backend Running
-
-Frontend Running
-
-GPU Detected
-
-CUDA Available
-
-Models Downloaded
-
-Output Directories Created
-
-Logs Working
-
-API Accessible
-
-HTTPS Enabled
-
-Health Check Passing
+1. Log Error
+2. Clean Temporary Files
+3. Return Failure Status
+4. Allow User Retry
 
 ---
 
@@ -453,3 +178,4 @@ Health Check Passing
 - Store only metadata in the database (if added later).
 - Clean temporary files after each completed job.
 - Monitor GPU memory to avoid out-of-memory errors.
+- Add reverse proxy (Nginx/Caddy) for production HTTPS termination.

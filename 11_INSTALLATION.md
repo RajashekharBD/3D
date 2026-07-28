@@ -14,6 +14,7 @@ The installation process covers:
 - AI Model Download
 - Backend Setup
 - Frontend Setup
+- Supabase Setup
 - Verification
 
 ---
@@ -83,6 +84,7 @@ Install the following software before proceeding.
 - NVIDIA Driver (latest)
 - CUDA Toolkit 12.1
 - cuDNN (compatible with CUDA 12.1)
+- Supabase CLI (for database migrations)
 
 ---
 
@@ -170,17 +172,93 @@ True
 
 # Download AI Models
 
-The following models are automatically downloaded during first execution:
+The following models are automatically downloaded from Hugging Face during first execution:
 
 - Florence-2
 - GroundingDINO
 - SAM2.1
 - Hunyuan3D-2
 
-Alternatively
+Models are cached locally via Hugging Face `transformers` on first use. No separate download script is needed.
+
+---
+
+# Supabase Setup
+
+## Create Supabase Project
+
+1. Go to https://supabase.com and sign in.
+2. Click **New Project** and enter project details.
+3. Wait for database provisioning to complete.
+
+## Get API Credentials
+
+From the Supabase dashboard (Project Settings → API):
+
+- **Project URL** — used as `SUPABASE_URL`
+- **anon public key** — used as `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- **service_role key** — used as `SUPABASE_SERVICE_ROLE_KEY`
+
+From Project Settings → API → JWT Settings:
+
+- **JWT Secret** — used as `SUPABASE_JWT_SECRET`
+
+## Run Migrations
 
 ```bash
-python scripts/download_models.py
+supabase link --project-ref your-project-ref
+
+supabase migration up
+```
+
+---
+
+# Configure Environment
+
+## Backend (.env)
+
+Copy `.env.example` to `.env` in the project root and update values.
+
+```
+APP_NAME=SingleImage3D
+
+APP_ENV=development
+
+HOST=0.0.0.0
+
+PORT=8000
+
+LOG_LEVEL=INFO
+
+CUDA_DEVICE=0
+
+OUTPUT_DIR=outputs
+
+TEMP_DIR=data/temp
+
+MAX_UPLOAD_SIZE_MB=25
+
+DELETE_TEMP_FILES=true
+
+SUPABASE_URL=https://your-project.supabase.co
+
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+SUPABASE_JWT_SECRET=your-jwt-secret
+```
+
+## Frontend (.env.local)
+
+Create `frontend/.env.local`:
+
+```
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+
+NEXT_PUBLIC_BACKEND_URL=http://localhost:8000
+
+NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
 ```
 
 ---
@@ -220,36 +298,8 @@ scripts/
 tests/
 
 docs/
-```
 
----
-
-# Configure Environment
-
-Copy
-
-```
-.env.example
-```
-
-to
-
-```
-.env
-```
-
-Update values as required.
-
-Example
-
-```
-CUDA_DEVICE=0
-
-OUTPUT_DIR=outputs
-
-TEMP_DIR=data/temp
-
-LOG_LEVEL=INFO
+supabase/
 ```
 
 ---
@@ -418,6 +468,10 @@ API
 
 Accessible
 
+Supabase
+
+Connected
+
 ---
 
 # Troubleshooting
@@ -451,11 +505,20 @@ Check
 - Hugging Face Access
 - Available Disk Space
 
-Retry
+Models download automatically on first use via Hugging Face `transformers`.
 
-```bash
-python scripts/download_models.py
-```
+---
+
+## Supabase Connection Failed
+
+Check
+
+- SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY values in .env
+- NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY in frontend/.env.local
+- Project is active in Supabase dashboard
+- Network access (no firewall blocking)
+
+The backend falls back to local/mock mode if Supabase is unavailable.
 
 ---
 
@@ -469,7 +532,9 @@ python scripts/download_models.py
 - Virtual Environment Created
 - Backend Dependencies Installed
 - Frontend Dependencies Installed
-- AI Models Downloaded
+- Supabase Project Created
+- Migrations Applied
+- Environment Variables Configured
 - Backend Running
 - Frontend Running
 - GPU Verified

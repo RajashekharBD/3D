@@ -42,10 +42,12 @@ class JobArtifactsManager:
         except Exception as e:
             logger.error(f"Failed to write result.json for job {job_id}: {e}")
 
-    def init_job(self, job_id: str, original_image_path: str, user_id: str = None, email: str = None) -> None:
+    def init_job(self, job_id: str, original_image_path: str, user_id: str = None, email: str = None, original_filename: str = None) -> None:
         """Initializes job directory, saves original.png + result.json, and syncs to database."""
         job_dir = self._get_job_dir(job_id)
         os.makedirs(job_dir, exist_ok=True)
+
+        display_filename = original_filename or os.path.basename(original_image_path)
 
         # Convert original image to PNG and save to outputs/<job_id>/original.png
         dest_original_path = os.path.join(job_dir, "original.png")
@@ -59,6 +61,7 @@ class JobArtifactsManager:
         # Write initial result.json
         data = {
             "job_id": job_id,
+            "original_filename": display_filename,
             "status": "processing",
             "completed_phases": ["upload"],
             "artifacts": {
@@ -83,7 +86,7 @@ class JobArtifactsManager:
                 db.get_client().table("jobs").insert({
                     "job_id": job_id,
                     "user_id": user_id,
-                    "original_filename": os.path.basename(original_image_path),
+                    "original_filename": display_filename,
                     "status": "processing"
                 }).execute()
 

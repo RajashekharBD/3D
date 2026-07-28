@@ -57,6 +57,12 @@ TEMP_DIR=data/temp
 MAX_UPLOAD_SIZE_MB=25
 
 DELETE_TEMP_FILES=true
+
+SUPABASE_URL=https://your-project.supabase.co
+
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+SUPABASE_JWT_SECRET=your-jwt-secret
 ```
 
 ---
@@ -71,17 +77,11 @@ configs/app.yaml
 
 ```yaml
 application:
-
   name: Single Image 3D System
-
   version: 1.0.0
-
   debug: true
-
   max_upload_size_mb: 25
-
   allowed_extensions:
-
     - jpg
     - jpeg
     - png
@@ -101,17 +101,12 @@ configs/image_processing.yaml
 
 ```yaml
 image:
-
   brightness_threshold: 0.30
-
   contrast_threshold: 0.15
-
   apply_clahe: true
 
 clahe:
-
   clip_limit: 2.0
-
   tile_grid_size: 8
 ```
 
@@ -127,15 +122,10 @@ configs/florence2.yaml
 
 ```yaml
 florence2:
-
   device: cuda
-
   precision: float16
-
   max_tokens: 64
-
   temperature: 0.0
-
   beam_search: true
 ```
 
@@ -151,17 +141,11 @@ configs/grounding_dino.yaml
 
 ```yaml
 grounding_dino:
-
   thresholds:
-
     pass1: 0.20
-
     pass2: 0.20
-
     pass3: 0.15
-
     pass4: 0.10
-
   max_retries: 4
 ```
 
@@ -177,11 +161,8 @@ configs/sam2.yaml
 
 ```yaml
 sam2:
-
   multimask_output: true
-
   choose_best_iou: true
-
   device: cuda
 ```
 
@@ -197,9 +178,7 @@ configs/rembg.yaml
 
 ```yaml
 rembg:
-
   use_gpu: true
-
   output_format: RGBA
 ```
 
@@ -215,16 +194,20 @@ configs/hunyuan3d.yaml
 
 ```yaml
 hunyuan3d:
-
-  shape_steps: 50
-
+  shape_steps: 30
   guidance_scale: 5.5
-
-  texture_steps: 20
-
-  texture_resolution: 1024
-
+  texture_steps: 10
+  texture_resolution: 512
   export_format: glb
+  octree_resolution: 256
+  use_fp16: true
+  cpu_offload: true
+  sequential_cpu_offload: true
+  attention_slicing: true
+  vae_slicing: true
+  vae_tiling: true
+  lazy_loading: true
+  retry_on_oom: true
 ```
 
 ---
@@ -239,15 +222,10 @@ configs/pointcloud.yaml
 
 ```yaml
 pointcloud:
-
   target_points: 100000
-
   estimate_normals: true
-
   radius: 0.05
-
   max_neighbors: 30
-
   orient_normals: true
 ```
 
@@ -263,11 +241,8 @@ configs/dbscan.yaml
 
 ```yaml
 dbscan:
-
   eps: 0.05
-
   min_points: 50
-
   remove_outliers: true
 ```
 
@@ -283,13 +258,9 @@ configs/logging.yaml
 
 ```yaml
 logging:
-
   level: INFO
-
   file: logs/pipeline.log
-
   console: true
-
   save_errors: true
 ```
 
@@ -305,11 +276,8 @@ configs/frontend.yaml
 
 ```yaml
 frontend:
-
   polling_interval: 2000
-
   max_preview_size: 1200
-
   enable_dark_mode: false
 ```
 

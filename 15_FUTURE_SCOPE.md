@@ -59,12 +59,22 @@ Generate all assets automatically.
 
 ---
 
-## User Accounts
+## User Accounts ✅ COMPLETED
 
-- Login
-- Registration
-- Dashboard
-- Project History
+- Login ✅
+- Registration ✅
+- Dashboard ✅ (profile page)
+- Project History ✅ (history route)
+
+Implemented using Supabase Auth.
+
+---
+
+## Project History ✅ COMPLETED
+
+Users can view past projects at `/history`.
+
+Implemented with history route and Supabase backend.
 
 ---
 
